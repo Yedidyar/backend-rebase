@@ -87,14 +87,25 @@ class HashMap<T> {
     this.buckets[fnv1a(key) % this.buckets.length].add([key, value]);
   }
 
-  get(key: string): T | null {
+  get(key: string): T {
     const bucket = this.buckets[fnv1a(key) % this.buckets.length];
 
-    return bucket.get(key)?.[1] ?? null;
+    const value = bucket.get(key);
+    if (value) {
+      return value[1];
+    }
+
+    throw new Error("non existing key");
   }
 
   remove(key: string) {
     const bucket = this.buckets[fnv1a(key) % this.buckets.length];
-    bucket.remove(key);
+    const value = bucket.remove(key);
+
+    if (value) {
+      return value;
+    }
+
+    throw new Error("non existing key");
   }
 }
