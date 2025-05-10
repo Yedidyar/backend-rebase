@@ -34,7 +34,7 @@ class KeyValueLinkedList<T> {
     return null;
   }
 
-  delete(key: string) {
+  remove(key: string) {
     let curr: KeyValueNode<T> | null = this.head;
     let prev: KeyValueNode<T> | null = null;
 
@@ -93,8 +93,8 @@ class HashMap<T> {
     return bucket.get(key)?.[1] ?? null;
   }
 
-  delete(key: string) {
+  remove(key: string) {
     const bucket = this.buckets[fnv1a(key) % this.buckets.length];
-    bucket.delete(key);
+    bucket.remove(key);
   }
 }
