@@ -108,7 +108,5 @@ export class HashMap<T> {
     if (entry) {
       return entry;
     }
-
-    throw new Error("non existing key");
   }
 }
