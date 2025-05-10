@@ -3,6 +3,9 @@ interface KeyValueNode<T> {
   next: KeyValueNode<T> | null;
 }
 
+const KEY_INDEX = 0;
+const VALUE_INDEX = 1;
+
 class KeyValueLinkedList<T> {
   private head: KeyValueNode<T> | null;
 
@@ -10,7 +13,7 @@ class KeyValueLinkedList<T> {
   add(value: [string, T]) {
     let curr: KeyValueNode<T> | null = this.head;
     while (curr) {
-      if (curr.value[0] === value[0]) {
+      if (curr.value[KEY_INDEX] === value[KEY_INDEX]) {
         curr.value = value;
         return;
       }
@@ -26,7 +29,7 @@ class KeyValueLinkedList<T> {
   get(key: string) {
     let curr: KeyValueNode<T> | null = this.head;
     while (curr) {
-      if (curr.value[0] === key) {
+      if (curr.value[KEY_INDEX] === key) {
         return curr.value;
       }
       curr = curr.next;
@@ -39,13 +42,13 @@ class KeyValueLinkedList<T> {
     let prev: KeyValueNode<T> | null = null;
 
     while (curr) {
-      if (curr.value[0] === key) {
+      if (curr.value[KEY_INDEX] === key) {
         if (prev) {
           prev.next = curr.next;
         } else {
           this.head = null;
         }
-        return curr;
+        return curr.value;
       }
       prev = curr;
       curr = curr.next;
@@ -75,7 +78,7 @@ function fnv1a(str: string) {
   return hash >>> 0;
 }
 
-class HashMap<T> {
+export class HashMap<T> {
   private buckets: KeyValueLinkedList<T>[];
   constructor(bucketsLength = 6) {
     this.buckets = Array(bucketsLength)
@@ -90,9 +93,9 @@ class HashMap<T> {
   get(key: string): T {
     const bucket = this.buckets[fnv1a(key) % this.buckets.length];
 
-    const value = bucket.get(key);
-    if (value) {
-      return value[1];
+    const entry = bucket.get(key);
+    if (entry) {
+      return entry[VALUE_INDEX];
     }
 
     throw new Error("non existing key");
@@ -100,10 +103,10 @@ class HashMap<T> {
 
   remove(key: string) {
     const bucket = this.buckets[fnv1a(key) % this.buckets.length];
-    const value = bucket.remove(key);
+    const entry = bucket.remove(key);
 
-    if (value) {
-      return value;
+    if (entry) {
+      return entry;
     }
 
     throw new Error("non existing key");
