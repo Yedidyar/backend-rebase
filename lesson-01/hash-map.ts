@@ -1,3 +1,5 @@
+import * as crypto from "crypto";
+
 interface KeyValueNode<T> {
   value: [string, T];
   next: KeyValueNode<T> | null;
@@ -66,16 +68,9 @@ class KeyValueLinkedList<T> {
   }
 }
 
-// I copy an hash function from the internet because I did not find any sync one in the std lib
-function fnv1a(str: string) {
-  let hash = 0x811c9dc5;
-  for (let i = 0; i < str.length; i++) {
-    hash ^= str.charCodeAt(i);
-    hash +=
-      (hash << 1) + (hash << 4) + (hash << 7) + (hash << 8) + (hash << 24);
-  }
-  // Convert to 32-bit unsigned int
-  return hash >>> 0;
+function createHash(value: string) {
+  const hashHex = crypto.createHash("md5").update(value).digest("hex");
+  return parseInt(hashHex.slice(0, 8), 16);
 }
 
 export class HashMap<T> {
@@ -87,11 +82,11 @@ export class HashMap<T> {
   }
 
   put(key: string, value: T) {
-    this.buckets[fnv1a(key) % this.buckets.length].add([key, value]);
+    this.buckets[createHash(key) % this.buckets.length].add([key, value]);
   }
 
   get(key: string): T {
-    const bucket = this.buckets[fnv1a(key) % this.buckets.length];
+    const bucket = this.buckets[createHash(key) % this.buckets.length];
 
     const entry = bucket.get(key);
     if (entry) {
@@ -102,7 +97,7 @@ export class HashMap<T> {
   }
 
   remove(key: string) {
-    const bucket = this.buckets[fnv1a(key) % this.buckets.length];
+    const bucket = this.buckets[createHash(key) % this.buckets.length];
     const entry = bucket.remove(key);
 
     if (entry) {
