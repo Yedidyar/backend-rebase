@@ -1,10 +1,18 @@
 import type { FastifyInstance, FastifyRequest } from "fastify";
-import { readdir, rm, stat, writeFile } from "node:fs/promises";
+import {
+  mkdir,
+  readdir,
+  rm,
+  stat,
+  writeFile,
+  readFile,
+} from "node:fs/promises";
 import { config } from "../config.js";
 import { extractRawContent } from "./helpers.js";
-import { createReadStream, existsSync, readFileSync, rmSync } from "node:fs";
+import { createReadStream, existsSync } from "node:fs";
 import mime from "mime-types";
-import { join } from "node:path";
+import path, { join } from "node:path";
+import { createHash } from "node:crypto";
 
 function getHeaders(request: FastifyRequest) {
   const rebaseHeaders = (
@@ -51,6 +59,46 @@ const dirSize = async (dir: string): Promise<number> => {
     .reduce((i, size) => i + size, 0);
 };
 
+async function countFiles(directoryPath: string) {
+  try {
+    const files = await readdir(directoryPath);
+    const fileCount = files.filter(async (file) => {
+      return (await stat(path.join(directoryPath, file))).isFile();
+    }).length;
+    return fileCount;
+  } catch (error) {
+    if ((error as { code: "ENOENT" }).code === "ENOENT") {
+      return null;
+    }
+    throw error;
+  }
+}
+
+export async function getFullFileDir(basePath: string, fileName: string) {
+  const hash = createHash("md5").update(fileName).digest("hex");
+  let dirName = `${basePath}/${hash.slice(0, 2)}`;
+  let cursor = 2;
+  while (hash) {
+    if (existsSync(`${dirName}/${fileName}`)) {
+      return dirName;
+    }
+
+    const fileCount = await countFiles(dirName);
+
+    if (fileCount === null) {
+      return dirName;
+    }
+
+    if (fileCount < config.MAX_BLOBS_IN_FOLDER) {
+      return dirName;
+    }
+    dirName = `${dirName}/${hash.slice(cursor, cursor + 2)}`;
+    cursor += 2;
+  }
+
+  return dirName;
+}
+
 async function routes(fastify: FastifyInstance, options: object) {
   fastify.addContentTypeParser("*", function (request, payload, done) {
     done(null, request);
@@ -58,7 +106,7 @@ async function routes(fastify: FastifyInstance, options: object) {
 
   fastify.get(
     "/:id",
-    (
+    async (
       request: FastifyRequest<{
         Params: {
           id: string;
@@ -66,26 +114,29 @@ async function routes(fastify: FastifyInstance, options: object) {
       }>,
       reply
     ) => {
-      if (!existsSync(`${config.BLOBS_DIR}/${request.params.id}`)) {
+      const fullFilePath = `${await getFullFileDir(
+        config.BLOBS_DIR,
+        request.params.id
+      )}/${request.params.id}`;
+
+      if (!existsSync(fullFilePath)) {
         reply.status(404).send();
         return;
       }
 
-      const readStream = createReadStream(
-        `${config.BLOBS_DIR}/${request.params.id}`
-      );
+      const readStream = createReadStream(fullFilePath);
       const { headers } = JSON.parse(
-        readFileSync(
-          `${config.METADATA_DIR}/${request.params.id}.metadata`
+        (
+          await readFile(`${config.METADATA_DIR}/${request.params.id}.metadata`)
         ).toString("ascii")
       );
 
       reply.header(
         "content-type",
         headers?.["content-type"] ??
-          (mime.lookup(`${config.BLOBS_DIR}/${request.params.id}`) ||
-            "application/octet-stream")
+          (mime.lookup(fullFilePath) || "application/octet-stream")
       );
+
       reply.headers(headers);
 
       reply.send(readStream);
@@ -102,6 +153,12 @@ async function routes(fastify: FastifyInstance, options: object) {
       }>,
       reply
     ) => {
+      if (Object.keys(request.headers).length > config.MAX_HEADER_COUNT) {
+        return reply.code(413).send({
+          errorMessage: "Too many headers",
+        });
+      }
+
       if (!request.headers["content-length"]) {
         return reply.status(400).send({
           errorMessage: "Content-Length header is required",
@@ -146,7 +203,14 @@ async function routes(fastify: FastifyInstance, options: object) {
         });
       }
 
-      extractRawContent(request, `${config.BLOBS_DIR}/${request.params.id}`);
+      const fileDir = await getFullFileDir(config.BLOBS_DIR, request.params.id);
+      const fullFilePath = `${fileDir}/${request.params.id}`;
+
+      await mkdir(fileDir, {
+        recursive: true,
+      });
+
+      extractRawContent(request, fullFilePath);
       writeFile(
         `${config.METADATA_DIR}/${request.params.id}.metadata`,
         headers
@@ -166,13 +230,18 @@ async function routes(fastify: FastifyInstance, options: object) {
       }>,
       reply
     ) => {
-      if (!existsSync(`${config.BLOBS_DIR}/${request.params.id}`)) {
+      const fullFilePath = `${await getFullFileDir(
+        config.BLOBS_DIR,
+        request.params.id
+      )}/${request.params.id}`;
+
+      if (!existsSync(fullFilePath)) {
         return;
       }
 
       try {
         await Promise.all([
-          rm(`${config.BLOBS_DIR}/${request.params.id}`),
+          rm(fullFilePath),
           rm(`${config.METADATA_DIR}/${request.params.id}.metadata`),
         ]);
       } catch (error) {
