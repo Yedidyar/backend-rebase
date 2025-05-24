@@ -2,7 +2,7 @@ import type { FastifyInstance, FastifyRequest } from "fastify";
 import { rm, writeFile } from "node:fs/promises";
 import { config } from "../config.js";
 import { extractRawContent } from "./helpers.js";
-import { createReadStream, existsSync, rmSync } from "node:fs";
+import { createReadStream, existsSync, readFileSync, rmSync } from "node:fs";
 import mime from "mime-types";
 
 function getHeaders(request: FastifyRequest) {
@@ -18,10 +18,14 @@ function getHeaders(request: FastifyRequest) {
 
   return {
     headers: {
-      contentType,
+      ["content-type"]: contentType,
       ...rebaseHeaders,
     },
   };
+}
+
+function isValidId(id: string) {
+  return /^[a-zA-Z0-9._-]+$/.test(id);
 }
 
 async function routes(fastify: FastifyInstance, options: object) {
@@ -47,12 +51,19 @@ async function routes(fastify: FastifyInstance, options: object) {
       const readStream = createReadStream(
         `${config.BLOBS_DIR}/${request.params.id}`
       );
+      const { headers } = JSON.parse(
+        readFileSync(
+          `${config.METADATA_DIR}/${request.params.id}.metadata`
+        ).toString("ascii")
+      );
 
       reply.header(
         "content-type",
-        mime.lookup(`${config.BLOBS_DIR}/${request.params.id}`) ||
-          "application/octet-stream"
+        headers?.["content-type"] ??
+          (mime.lookup(`${config.BLOBS_DIR}/${request.params.id}`) ||
+            "application/octet-stream")
       );
+      reply.headers(headers);
 
       reply.send(readStream);
     }
@@ -60,23 +71,6 @@ async function routes(fastify: FastifyInstance, options: object) {
 
   fastify.post(
     "/:id",
-    {
-      schema: {
-        consumes: ["multipart/form-data"],
-        body: {
-          type: "object",
-          properties: {
-            content: {
-              type: "string",
-            },
-            media: {
-              type: "string",
-              format: "binary",
-            },
-          },
-        },
-      },
-    },
     async (
       request: FastifyRequest<{
         Params: {
@@ -85,10 +79,44 @@ async function routes(fastify: FastifyInstance, options: object) {
       }>,
       reply
     ) => {
+      if (!request.headers["content-length"]) {
+        return reply.status(400).send({
+          errorMessage: "Content-Length header is required",
+        });
+      }
+
+      const headers = Buffer.from(JSON.stringify(getHeaders(request)), "ascii");
+
+      const payloadLength =
+        headers.byteLength + parseInt(request.headers["content-length"]);
+
+      if (payloadLength > config.MAX_LENGTH) {
+        reply.code(413).send({
+          errorMessage: "Payload too large",
+        });
+        return;
+      }
+
+      if (headers.byteLength > config.MAX_HEADER_LENGTH) {
+        reply.code(413).send({
+          errorMessage: "Header payload too large",
+        });
+        return;
+      }
+
+      if (
+        !isValidId(request.params.id) ||
+        request.params.id.length > config.MAX_ID_LENGTH
+      ) {
+        return reply.code(400).send({
+          errorMessage: `Invalid ID format. Only alphanumeric characters, periods, underscores, and hyphens are allowed, with a maximum length of ${config.MAX_ID_LENGTH} characters.`,
+        });
+      }
+
       extractRawContent(request, `${config.BLOBS_DIR}/${request.params.id}`);
       writeFile(
         `${config.METADATA_DIR}/${request.params.id}.metadata`,
-        JSON.stringify(getHeaders(request))
+        headers
       );
 
       return reply.code(204).send();
@@ -110,7 +138,7 @@ async function routes(fastify: FastifyInstance, options: object) {
       }
 
       try {
-        await Promise.allSettled([
+        await Promise.all([
           rm(`${config.BLOBS_DIR}/${request.params.id}`),
           rm(`${config.METADATA_DIR}/${request.params.id}.metadata`),
         ]);
