@@ -11,7 +11,7 @@ export async function deleteBlobHandler(
     const deleted = await BlobService.deleteBlob(request.params.id);
 
     if (!deleted) {
-      return reply.code(204).send();
+      return reply.code(200).send();
     }
 
     return reply.code(204).send();

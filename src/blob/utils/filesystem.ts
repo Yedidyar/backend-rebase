@@ -30,9 +30,15 @@ export async function countFiles(
 ): Promise<number | null> {
   try {
     const files = await readdir(directoryPath);
-    const fileCount = files.filter(async (file) => {
-      return (await stat(join(directoryPath, file))).isFile();
-    }).length;
+    const fileStats = await Promise.all(
+      files.map(async (file) => {
+        return {
+          name: file,
+          isFile: (await stat(join(directoryPath, file))).isFile(),
+        };
+      })
+    );
+    const fileCount = fileStats.filter((file) => file.isFile).length;
     return fileCount;
   } catch (error) {
     if ((error as { code: "ENOENT" }).code === "ENOENT") {
@@ -50,7 +56,7 @@ export async function getFullFileDir(
   let dirName = `${basePath}/${hash.slice(0, 2)}`;
   let cursor = 2;
 
-  while (hash) {
+  while (hash.length >= dirName.length) {
     if (existsSync(`${dirName}/${fileName}`)) {
       return dirName;
     }

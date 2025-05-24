@@ -39,10 +39,8 @@ export class BlobService {
 
     await mkdir(fileDir, { recursive: true });
 
-    await Promise.all([
-      extractRawContent(request, fullFilePath),
-      writeFile(`${config.METADATA_DIR}/${id}.metadata`, headers),
-    ]);
+    await extractRawContent(request, fullFilePath);
+    await writeFile(`${config.METADATA_DIR}/${id}.metadata`, headers);
   }
 
   static async deleteBlob(id: string): Promise<boolean> {
