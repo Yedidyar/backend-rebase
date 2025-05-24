@@ -1,5 +1,5 @@
 import type { FastifyInstance, FastifyRequest } from "fastify";
-import { appendFile, createWriteStream } from "node:fs";
+import { createWriteStream } from "node:fs";
 import { writeFile } from "node:fs/promises";
 import { config } from "../config.js";
 
@@ -54,15 +54,6 @@ async function routes(fastify: FastifyInstance, options: object) {
       }>,
       reply
     ) => {
-      const rebaseHeaders = (
-        Object.values(request.headers).filter(
-          (value) =>
-            typeof value === "string" &&
-            value.toLowerCase().startsWith("x-rebase-")
-        ) as string[]
-      ).map((value) => request.headers[value]);
-      const [contentType] = request.headers["content-type"]?.split(";")!;
-
       await new Promise<void>((resolve, reject) => {
         const writeStream = createWriteStream(
           `${config.BLOBS_DIR}/${request.params.id}`
@@ -76,9 +67,15 @@ async function routes(fastify: FastifyInstance, options: object) {
           JSON.stringify(getHeaders(request))
         );
         request.raw.on("end", () => {
+          writeStream.end();
           resolve();
         });
         request.raw.on("error", (err) => {
+          writeStream.end();
+          reject(err);
+        });
+
+        writeStream.on("error", (err) => {
           reject(err);
         });
       });
