@@ -39,6 +39,11 @@ async function routes(fastify: FastifyInstance, options: object) {
       }>,
       reply
     ) => {
+      if (!existsSync(`${config.BLOBS_DIR}/${request.params.id}`)) {
+        reply.status(404).send();
+        return;
+      }
+
       const readStream = createReadStream(
         `${config.BLOBS_DIR}/${request.params.id}`
       );
@@ -101,7 +106,6 @@ async function routes(fastify: FastifyInstance, options: object) {
       reply
     ) => {
       if (!existsSync(`${config.BLOBS_DIR}/${request.params.id}`)) {
-        reply.status(404).send();
         return;
       }
 
