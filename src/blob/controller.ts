@@ -37,7 +37,7 @@ function isValidId(id: string) {
   return /^[a-zA-Z0-9._-]+$/.test(id);
 }
 
-const dirSize = async (dir: string): Promise<number> => {
+async function dirSize(dir: string): Promise<number> {
   const files = await readdir(dir, { withFileTypes: true });
 
   const paths = files.map(async (file) => {
@@ -57,7 +57,7 @@ const dirSize = async (dir: string): Promise<number> => {
   return (await Promise.all(paths))
     .flat(Infinity)
     .reduce((i, size) => i + size, 0);
-};
+}
 
 async function countFiles(directoryPath: string) {
   try {
@@ -131,15 +131,14 @@ async function routes(fastify: FastifyInstance, options: object) {
         ).toString("ascii")
       );
 
-      reply.header(
-        "content-type",
+      reply.headers(headers);
+      reply.type(
         headers?.["content-type"] ??
           (mime.lookup(fullFilePath) || "application/octet-stream")
       );
 
-      reply.headers(headers);
-
       reply.send(readStream);
+      return reply;
     }
   );
 
