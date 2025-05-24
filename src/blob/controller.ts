@@ -1,9 +1,10 @@
 import type { FastifyInstance, FastifyRequest } from "fastify";
-import { rm, writeFile } from "node:fs/promises";
+import { readdir, rm, stat, writeFile } from "node:fs/promises";
 import { config } from "../config.js";
 import { extractRawContent } from "./helpers.js";
 import { createReadStream, existsSync, readFileSync, rmSync } from "node:fs";
 import mime from "mime-types";
+import { join } from "node:path";
 
 function getHeaders(request: FastifyRequest) {
   const rebaseHeaders = (
@@ -27,6 +28,28 @@ function getHeaders(request: FastifyRequest) {
 function isValidId(id: string) {
   return /^[a-zA-Z0-9._-]+$/.test(id);
 }
+
+const dirSize = async (dir: string): Promise<number> => {
+  const files = await readdir(dir, { withFileTypes: true });
+
+  const paths = files.map(async (file) => {
+    const path = join(dir, file.name);
+
+    if (file.isDirectory()) return await dirSize(path);
+
+    if (file.isFile()) {
+      const { size } = await stat(path);
+
+      return size;
+    }
+
+    return 0;
+  });
+
+  return (await Promise.all(paths))
+    .flat(Infinity)
+    .reduce((i, size) => i + size, 0);
+};
 
 async function routes(fastify: FastifyInstance, options: object) {
   fastify.addContentTypeParser("*", function (request, payload, done) {
@@ -83,6 +106,16 @@ async function routes(fastify: FastifyInstance, options: object) {
         return reply.status(400).send({
           errorMessage: "Content-Length header is required",
         });
+      }
+
+      const blobDirSize = await dirSize(config.BLOBS_DIR);
+      const metadataDirSize = await dirSize(config.METADATA_DIR);
+
+      if (blobDirSize + metadataDirSize > config.MAX_DISK_QUOTA) {
+        reply.code(507).send({
+          errorMessage: "Storage quota exceeded",
+        });
+        return;
       }
 
       const headers = Buffer.from(JSON.stringify(getHeaders(request)), "ascii");
