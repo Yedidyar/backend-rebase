@@ -1,5 +1,5 @@
 import Fastify from "fastify";
-import blobPlugin from "./blob/controller.js";
+import blobPlugin from "./blob/index.js";
 import { existsSync, mkdirSync } from "node:fs";
 import { config } from "./config.js";
 
