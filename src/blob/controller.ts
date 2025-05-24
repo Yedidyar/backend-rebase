@@ -65,19 +65,14 @@ async function routes(fastify: FastifyInstance, options: object) {
 
       await new Promise<void>((resolve, reject) => {
         const writeStream = createWriteStream(
-          `${config.METADATA_DIR}/${request.params.id}`
+          `${config.BLOBS_DIR}/${request.params.id}`
         );
         request.raw.on("data", (chunk) => {
           writeStream.write(chunk);
-          // appendFile(
-          //   `${config.METADATA_DIR}/${request.params.id}`,
-          //   chunk,
-          //   () => {}
-          // );
         });
 
         writeFile(
-          `${config.METADATA_DIR}/${request.params.id}`,
+          `${config.METADATA_DIR}/${request.params.id}.metadata`,
           JSON.stringify(getHeaders(request))
         );
         request.raw.on("end", () => {
