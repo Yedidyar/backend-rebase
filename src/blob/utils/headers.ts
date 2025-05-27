@@ -1,7 +1,7 @@
-import type { FastifyRequest } from "fastify";
-import type { BlobHeaders } from "../types.js";
+import type { BlobHeaders, BlobRequest } from "../types.js";
+import mime from "mime-types";
 
-export function getHeaders(request: FastifyRequest): { headers: BlobHeaders } {
+export function getHeaders(request: BlobRequest): { headers: BlobHeaders } {
   const rebaseHeaders = (
     Object.keys(request.headers).filter((value) =>
       value.toLowerCase().startsWith("x-rebase-")
@@ -17,7 +17,8 @@ export function getHeaders(request: FastifyRequest): { headers: BlobHeaders } {
 
   return {
     headers: {
-      ["content-type"]: parsedContentType,
+      ["content-type"]:
+        mime.lookup(request.params.id) || "application/octet-stream",
       ...rebaseHeaders,
     },
   };

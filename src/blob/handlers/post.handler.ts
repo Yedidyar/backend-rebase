@@ -25,15 +25,24 @@ export async function postBlobHandler(
   const blobDirSize = await dirSize(config.BLOBS_DIR);
   const metadataDirSize = await dirSize(config.METADATA_DIR);
 
-  if (blobDirSize + metadataDirSize > config.MAX_DISK_QUOTA) {
-    return reply.code(507).send({
-      errorMessage: "Storage quota exceeded",
+  if (
+    typeof request.headers["content-length"] !== "string" ||
+    isNaN(parseInt(request.headers["content-length"]))
+  ) {
+    return reply.status(400).send({
+      errorMessage: "Content-Length header must be a valid number",
     });
   }
 
   const headers = Buffer.from(JSON.stringify(getHeaders(request)), "ascii");
   const payloadLength =
     headers.byteLength + parseInt(request.headers["content-length"]);
+
+  if (payloadLength + blobDirSize + metadataDirSize > config.MAX_DISK_QUOTA) {
+    return reply.code(507).send({
+      errorMessage: "Storage quota exceeded",
+    });
+  }
 
   if (payloadLength > config.MAX_LENGTH) {
     return reply.code(413).send({

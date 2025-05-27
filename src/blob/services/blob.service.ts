@@ -22,9 +22,7 @@ export class BlobService {
       metadataContent.toString("ascii")
     );
 
-    const contentType =
-      metadata.headers?.["content-type"] ??
-      (mime.lookup(fullFilePath) || "application/octet-stream");
+    const contentType = metadata.headers["content-type"];
 
     return {
       stream: readStream,
