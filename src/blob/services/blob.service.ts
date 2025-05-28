@@ -1,6 +1,5 @@
 import { mkdir, readFile, rm, writeFile } from "node:fs/promises";
 import { createReadStream, existsSync } from "node:fs";
-import mime from "mime-types";
 import { config } from "../../config.js";
 import { getFullFileDir } from "../utils/filesystem.js";
 import { extractRawContent } from "../helpers.js";
@@ -8,16 +7,15 @@ import type { BlobMetadata } from "../types.js";
 
 export class BlobService {
   static async getBlob(id: string) {
-    const fullFilePath = `${await getFullFileDir(config.BLOBS_DIR, id)}/${id}`;
+    const blobDir = getFullFileDir(config.BLOBS_DIR, id);
+    const metadataDir = getFullFileDir(config.METADATA_DIR, id);
 
-    if (!existsSync(fullFilePath)) {
+    if (!existsSync(blobDir) || !existsSync(metadataDir)) {
       return null;
     }
 
-    const readStream = createReadStream(fullFilePath);
-    const metadataContent = await readFile(
-      `${config.METADATA_DIR}/${id}.metadata`
-    );
+    const readStream = createReadStream(`${blobDir}/${id}`);
+    const metadataContent = await readFile(`${metadataDir}/${id}.metadata`);
     const metadata: BlobMetadata = JSON.parse(
       metadataContent.toString("ascii")
     );
@@ -32,25 +30,27 @@ export class BlobService {
   }
 
   static async createBlob(id: string, request: any, headers: Buffer) {
-    const fileDir = await getFullFileDir(config.BLOBS_DIR, id);
-    const fullFilePath = `${fileDir}/${id}`;
+    const blobDir = getFullFileDir(config.BLOBS_DIR, id);
+    const metadataDir = getFullFileDir(config.METADATA_DIR, id);
 
-    await mkdir(fileDir, { recursive: true });
+    await mkdir(blobDir, { recursive: true });
+    await mkdir(metadataDir, { recursive: true });
 
-    await extractRawContent(request, fullFilePath);
-    await writeFile(`${config.METADATA_DIR}/${id}.metadata`, headers);
+    await extractRawContent(request, `${blobDir}/${id}`);
+    await writeFile(`${metadataDir}/${id}.metadata`, headers);
   }
 
   static async deleteBlob(id: string): Promise<boolean> {
-    const fullFilePath = `${await getFullFileDir(config.BLOBS_DIR, id)}/${id}`;
+    const blobDir = getFullFileDir(config.BLOBS_DIR, id);
+    const metadataDir = getFullFileDir(config.METADATA_DIR, id);
 
-    if (!existsSync(fullFilePath)) {
+    if (!existsSync(blobDir) || !existsSync(metadataDir)) {
       return false;
     }
 
     await Promise.all([
-      rm(fullFilePath),
-      rm(`${config.METADATA_DIR}/${id}.metadata`),
+      rm(`${blobDir}/${id}.metadata`),
+      rm(`${metadataDir}/${id}.metadata`),
     ]);
 
     return true;

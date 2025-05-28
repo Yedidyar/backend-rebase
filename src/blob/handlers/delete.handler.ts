@@ -10,7 +10,7 @@ export async function deleteBlobHandler(
   try {
     await BlobService.deleteBlob(request.params.id);
 
-    return reply.code(200).send();
+    return reply.code(204).send();
   } catch (error) {
     fastify.log.error({
       err: error,

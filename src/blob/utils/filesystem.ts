@@ -48,32 +48,9 @@ export async function countFiles(
   }
 }
 
-export async function getFullFileDir(
-  basePath: string,
-  fileName: string
-): Promise<string> {
+export function getFullFileDir(basePath: string, fileName: string): string {
   const hash = createHash("md5").update(fileName).digest("hex");
   let dirName = `${basePath}/${hash.slice(0, 2)}`;
-  let cursor = 2;
-
-  while (hash.length >= dirName.length) {
-    if (existsSync(`${dirName}/${fileName}`)) {
-      return dirName;
-    }
-
-    const fileCount = await countFiles(dirName);
-
-    if (fileCount === null) {
-      return dirName;
-    }
-
-    if (fileCount < config.MAX_BLOBS_IN_FOLDER) {
-      return dirName;
-    }
-
-    dirName = `${dirName}/${hash.slice(cursor, cursor + 2)}`;
-    cursor += 2;
-  }
 
   return dirName;
 }

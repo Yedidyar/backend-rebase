@@ -1,6 +1,6 @@
 import Fastify from "fastify";
 import blobPlugin from "./blob/index.js";
-import { existsSync, mkdirSync } from "node:fs";
+import { mkdirSync } from "node:fs";
 import { config } from "./config.js";
 
 const envToLogger = {
@@ -28,12 +28,8 @@ fastify.register(blobPlugin, { prefix: "/blobs" });
  */
 const start = async () => {
   try {
-    if (!existsSync(config.BLOBS_DIR)) {
-      mkdirSync(config.BLOBS_DIR);
-    }
-    if (!existsSync(config.METADATA_DIR)) {
-      mkdirSync(config.METADATA_DIR);
-    }
+    mkdirSync(config.BLOBS_DIR, { recursive: true });
+    mkdirSync(config.METADATA_DIR, { recursive: true });
 
     await fastify.listen({ port: 3000 });
   } catch (err) {
