@@ -4,6 +4,7 @@ import { config } from "../../config.js";
 import { getFullFileDir } from "../utils/filesystem.js";
 import { extractRawContent } from "../helpers.js";
 import type { BlobMetadata } from "../types.js";
+import { logger } from "../../logger/index.js";
 
 export class BlobService {
   static async getBlob(id: string) {
@@ -47,11 +48,22 @@ export class BlobService {
     if (!existsSync(blobDir) || !existsSync(metadataDir)) {
       return false;
     }
-
-    await Promise.all([
-      rm(`${blobDir}/${id}.metadata`),
+    const [blobDeleteResult, metadataDeleteResult] = await Promise.allSettled([
+      rm(`${blobDir}/${id}`),
       rm(`${metadataDir}/${id}.metadata`),
     ]);
+
+    if (blobDeleteResult.status === "rejected") {
+      logger.error(
+        `Failed to delete blob file for ID ${id}: ${blobDeleteResult.reason}`
+      );
+    }
+
+    if (metadataDeleteResult.status === "rejected") {
+      logger.error(
+        `Failed to delete metadata file for ID ${id}: ${metadataDeleteResult.reason}`
+      );
+    }
 
     return true;
   }
