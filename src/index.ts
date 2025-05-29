@@ -2,6 +2,7 @@ import Fastify from "fastify";
 import blobPlugin from "./blob/index.js";
 import { mkdirSync } from "node:fs";
 import { config } from "./config.js";
+import { logger } from "./logger/index.js";
 
 const envToLogger = {
   development: {
@@ -17,23 +18,28 @@ const envToLogger = {
   test: false,
 };
 
-const fastify = Fastify({
-  logger: envToLogger["development"],
-});
+const fastify = Fastify();
 
 fastify.register(blobPlugin, { prefix: "/blobs" });
 
 /**
  * Run the server!
  */
+
+const PORT = 3000;
 const start = async () => {
   try {
     mkdirSync(config.BLOBS_DIR, { recursive: true });
     mkdirSync(config.METADATA_DIR, { recursive: true });
 
-    await fastify.listen({ port: 3000 });
+    await fastify.listen({ port: PORT });
+    const address = fastify.server.address();
+    logger.info({
+      message: `server is up and running`,
+      address,
+    });
   } catch (err) {
-    fastify.log.error(err);
+    logger.error(err);
     process.exit(1);
   }
 };

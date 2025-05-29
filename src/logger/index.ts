@@ -4,10 +4,19 @@ const logzioWinstonTransport = new LogzioWinstonTransport({
   level: "info",
   name: "winston_logzio",
   token: process.env.LOGZIO_TOKEN!,
-  host: "listener-eu.logz.io",
+  host: process.env.LISTENER_URL,
+  
 });
 
 export const logger = winston.createLogger({
   format: winston.format.simple(),
-  transports: [logzioWinstonTransport],
+  transports: [
+    logzioWinstonTransport,
+    new winston.transports.Console({
+      format: winston.format.combine(
+        winston.format.colorize(),
+        winston.format.simple()
+      ),
+    }),
+  ],
 });
