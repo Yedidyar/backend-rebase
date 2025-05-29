@@ -9,7 +9,7 @@ fastify.get("*", async (request, replay) => {
     });
     return res;
   } catch {
-    replay.status(502).send();
+    replay.status(503).send();
   }
 });
 
