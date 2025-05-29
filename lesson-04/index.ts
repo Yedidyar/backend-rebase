@@ -4,9 +4,13 @@ const fastify = Fastify();
 
 fastify.get("*", async (request, replay) => {
   try {
-    const res = await fetch(`${request.url}`, {
-      headers: { ...request.headers, Host: request.host },
-    });
+    const headerEntries = Object.entries(request.headers).map(
+      ([key, value]) => [key, value?.toString() || ""] as [string, string]
+    );
+    const headers = new Headers(headerEntries);
+    headers.set("Host", request.host);
+
+    const res = await fetch(`${request.url}`, { headers });
     return res;
   } catch {
     replay.status(503).send();
