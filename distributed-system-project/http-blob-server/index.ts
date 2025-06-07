@@ -21,17 +21,6 @@ const start = async () => {
     await fastify.listen({ port: config.PORT, host: "127.0.0.1" });
     const address = fastify.server.address() as AddressInfo;
 
-    console.log(address);
-
-    console.log({
-      destination: {
-        host: address.address,
-        port: address.port,
-      },
-      name: config.NODE_NAME,
-    });
-
-
     const res = await fetch(
       `http://${config.LOAD_BALANCER_ADDRESS}/internal/nodes`,
       {
