@@ -6,7 +6,8 @@
   "type": "module",
   "scripts": {
     "test": "vitest",
-    "http-blob-server:dev": "node --env-file=.env --watch distributed-system-project/http-blob-server/index.ts"
+    "http-blob-server:dev": "node --env-file=.env --watch distributed-system-project/http-blob-server/index.ts",
+    "load-balancer:dev": "node --env-file=.env --watch distributed-system-project/load-balancer/index.ts"
   },
   "keywords": [],
   "author": "",
