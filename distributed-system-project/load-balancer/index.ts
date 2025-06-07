@@ -1,8 +1,17 @@
 import Fastify from "fastify";
 
+const ALLOWED_APIS = {
+  POST: ["/blobs/*"],
+  GET: ["/blobs/*"],
+  DELETE: ["/blobs/*"],
+} as const;
+
 const fastify = Fastify();
 
-fastify.get("*", async (request, replay) => {
+fastify.all("*", async (request, replay) => {
+  if (request.url) {
+    // TODO: filter logic
+  }
   try {
     const headerEntries = Object.entries(request.headers).map(
       ([key, value]) => [key, value?.toString() || ""] as [string, string]
