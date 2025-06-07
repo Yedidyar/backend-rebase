@@ -1,19 +1,7 @@
 import Fastify from "fastify";
 import { createHash } from "node:crypto";
 import axios from "axios";
-
-function toTitleCase(str: string) {
-  return str.replace(
-    /\w\S*/g,
-    (text) => text.charAt(0).toUpperCase() + text.substring(1).toLowerCase()
-  );
-}
-
-const ALLOWED_APIS = {
-  POST: ["/blobs/*"],
-  GET: ["/blobs/*"],
-  DELETE: ["/blobs/*"],
-} as const;
+import { toTitleCase } from "../string-utils/to-title-case.ts";
 
 interface RegisteredNode {
   destination: {
@@ -69,9 +57,6 @@ fastify.addContentTypeParser(
 fastify.all<{ Params: { id: string } }>(
   "/blobs/:id",
   async (request, replay) => {
-    if (request.url) {
-      // TODO: filter logic
-    }
     try {
       const headerEntries = Object.entries(request.headers).map(
         ([key, value]) =>
@@ -81,8 +66,6 @@ fastify.all<{ Params: { id: string } }>(
       headers.set("Host", request.host);
 
       const node = getDownstreamNode(request.ip, registeredNodes);
-
-      console.log(headers);
 
       const res = await axios.request({
         baseURL: `http://${node.destination.host}:${node.destination.port}/blobs/${request.params.id}`,
