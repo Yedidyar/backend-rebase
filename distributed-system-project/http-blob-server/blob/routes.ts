@@ -12,6 +12,6 @@ export async function blobRoutes(fastify: FastifyInstance, options: object) {
   fastify.get<{ Params: { id: string } }>("/:id", getBlobHandler);
   fastify.post<{ Params: { id: string } }>("/:id", postBlobHandler);
   fastify.delete<{ Params: { id: string } }>("/:id", (request, reply) =>
-    deleteBlobHandler(request as BlobRequest, reply, fastify)
+    deleteBlobHandler(request as BlobRequest, reply, fastify),
   );
 }

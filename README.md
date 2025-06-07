@@ -16,11 +16,13 @@ A lightweight and efficient blob storage server built with Fastify. This server 
 - docker-compose
 
 Run the project:
+
 ```bash
 pnpm run malic:up
 ```
 
 Kill the project:
+
 ```bash
 pnpm run malic:down
 ```
@@ -41,6 +43,7 @@ The server can be configured through the `config.ts` file. Here are the default 
 ## Running the Server
 
 Start the server with:
+
 ```bash
 npm start
 ```
@@ -50,6 +53,7 @@ The server will start on port 3000 by default.
 ## API Endpoints
 
 ### Store a Blob
+
 ```http
 POST /blobs/:id
 Content-Type: application/octet-stream
@@ -58,11 +62,13 @@ Content-Type: application/octet-stream
 ```
 
 ### Retrieve a Blob
+
 ```http
 GET /blobs/:id
 ```
 
 ### Delete a Blob
+
 ```http
 DELETE /blobs/:id
 ```
@@ -83,6 +89,7 @@ The server includes comprehensive error handling and logging. All errors are log
 ## Development
 
 To run the server in development mode with hot reloading:
+
 ```bash
 npm run dev
 ```

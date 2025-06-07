@@ -8,7 +8,7 @@ import type { BlobRequest } from "../types.ts";
 
 export async function postBlobHandler(
   request: BlobRequest,
-  reply: FastifyReply
+  reply: FastifyReply,
 ): Promise<FastifyReply> {
   if (Object.keys(request.headers).length > config.MAX_HEADER_COUNT) {
     return reply.code(413).send({

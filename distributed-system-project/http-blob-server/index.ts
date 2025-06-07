@@ -32,12 +32,14 @@ const start = async () => {
           },
           name: config.NODE_NAME,
         }),
-      }
+      },
     );
 
     if (!res.ok) {
       const errorText = await res.text();
-      throw new Error(`Failed to register with load balancer: ${res.status} ${errorText}`);
+      throw new Error(
+        `Failed to register with load balancer: ${res.status} ${errorText}`,
+      );
     }
 
     logger.info({

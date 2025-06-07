@@ -18,7 +18,7 @@ export class BlobService {
     const readStream = createReadStream(`${blobDir}/${id}`);
     const metadataContent = await readFile(`${metadataDir}/${id}.metadata`);
     const metadata: BlobMetadata = JSON.parse(
-      metadataContent.toString("ascii")
+      metadataContent.toString("ascii"),
     );
 
     const contentType = metadata.headers["content-type"];
@@ -55,13 +55,13 @@ export class BlobService {
 
     if (blobDeleteResult.status === "rejected") {
       logger.error(
-        `Failed to delete blob file for ID ${id}: ${blobDeleteResult.reason}`
+        `Failed to delete blob file for ID ${id}: ${blobDeleteResult.reason}`,
       );
     }
 
     if (metadataDeleteResult.status === "rejected") {
       logger.error(
-        `Failed to delete metadata file for ID ${id}: ${metadataDeleteResult.reason}`
+        `Failed to delete metadata file for ID ${id}: ${metadataDeleteResult.reason}`,
       );
     }
 

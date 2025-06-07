@@ -6,7 +6,7 @@ import { logger } from "../../logger/index.ts";
 export async function deleteBlobHandler(
   request: BlobRequest,
   reply: FastifyReply,
-  fastify: FastifyInstance
+  fastify: FastifyInstance,
 ): Promise<FastifyReply> {
   try {
     await BlobService.deleteBlob(request.params.id);

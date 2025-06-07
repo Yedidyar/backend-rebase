@@ -25,7 +25,7 @@ fastify.addContentTypeParser(
   { parseAs: "buffer", bodyLimit: Infinity },
   (req, body, done) => {
     done(null, body);
-  }
+  },
 );
 
 fastify.register(registerPlugin, { prefix: "/internal" });
@@ -40,7 +40,7 @@ fastify.all<{ Params: { id: string } }>(
     try {
       const headerEntries = Object.entries(request.headers).map(
         ([key, value]) =>
-          [toTitleCase(key), value?.toString() || ""] as [string, string]
+          [toTitleCase(key), value?.toString() || ""] as [string, string],
       );
       const headers = new Headers(headerEntries);
       headers.set("Host", request.host);
@@ -60,7 +60,7 @@ fastify.all<{ Params: { id: string } }>(
 
       replay.status(503).send();
     }
-  }
+  },
 );
 
 const start = async () => {

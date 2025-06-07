@@ -3,7 +3,7 @@ import { createWriteStream } from "node:fs";
 
 export async function extractRawContent(
   request: FastifyRequest,
-  filePath: string
+  filePath: string,
 ): Promise<void> {
   return new Promise<void>((resolve, reject) => {
     const writeStream = createWriteStream(filePath);

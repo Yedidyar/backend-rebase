@@ -12,7 +12,7 @@ export class NodeRegistrationService {
   static addNode(node: RegisteredNode) {
     if (readiness.getIsReady()) {
       throw new Error(
-        "the request was rejected because registration period is over"
+        "the request was rejected because registration period is over",
       );
     }
     this.registeredNodes.push(node);

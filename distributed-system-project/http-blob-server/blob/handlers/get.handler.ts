@@ -4,7 +4,7 @@ import type { BlobRequest } from "../types.ts";
 
 export async function getBlobHandler(
   request: BlobRequest,
-  reply: FastifyReply
+  reply: FastifyReply,
 ): Promise<FastifyReply> {
   const blob = await BlobService.getBlob(request.params.id);
 

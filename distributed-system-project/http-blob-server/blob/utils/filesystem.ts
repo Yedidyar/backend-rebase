@@ -26,7 +26,7 @@ export async function dirSize(dir: string): Promise<number> {
 }
 
 export async function countFiles(
-  directoryPath: string
+  directoryPath: string,
 ): Promise<number | null> {
   try {
     const files = await readdir(directoryPath);
@@ -36,7 +36,7 @@ export async function countFiles(
           name: file,
           isFile: (await stat(join(directoryPath, file))).isFile(),
         };
-      })
+      }),
     );
     const fileCount = fileStats.filter((file) => file.isFile).length;
     return fileCount;

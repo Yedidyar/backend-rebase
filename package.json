@@ -11,7 +11,8 @@
     "load-balancer:dev": "node --env-file=.env --watch distributed-system-project/load-balancer/index.ts",
     "load-balancer:prod": "node --env-file=.env distributed-system-project/load-balancer/index.ts",
     "malic:up": "docker-compose up --build",
-    "malic:down": "docker-compose down"
+    "malic:down": "docker-compose down",
+    "format": "prettier . --write"
   },
   "keywords": [],
   "author": "",
@@ -21,6 +22,7 @@
     "fastify": "^5.3.3",
     "heap-js": "^2.6.0",
     "mime-types": "^3.0.1",
+    "prettier": "^3.5.3",
     "winston": "^3.17.0",
     "winston-logzio": "^5.2.0"
   },

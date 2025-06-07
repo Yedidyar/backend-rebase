@@ -4,7 +4,7 @@ import mime from "mime-types";
 export function getHeaders(request: BlobRequest): { headers: BlobHeaders } {
   const rebaseHeaders = (
     Object.keys(request.headers).filter((value) =>
-      value.toLowerCase().startsWith("x-rebase-")
+      value.toLowerCase().startsWith("x-rebase-"),
     ) as string[]
   ).reduce<Record<string, string | string[] | undefined>>((prev, curr) => {
     prev[curr] = request.headers[curr];

@@ -4,7 +4,7 @@ import { NodeRegistrationService } from "../services/internal/nodes.service.ts";
 
 export async function postNodes(
   request: RegisteredNodeRequest,
-  reply: FastifyReply
+  reply: FastifyReply,
 ): Promise<FastifyReply> {
   NodeRegistrationService.addNode(JSON.parse(request.body) as RegisteredNode);
   return reply.code(201).send();
