@@ -1,13 +1,17 @@
 import type { FastifyReply } from "fastify";
 import { BlobService, GetBlobError } from "../services/blob.service.ts";
 import type { BlobRequest } from "../types.ts";
-import { logger } from "../../logger/index.ts";
+import { logger } from "../../../logger/index.ts";
 
 export async function getBlobHandler(
   request: BlobRequest,
   reply: FastifyReply,
 ): Promise<FastifyReply> {
   try {
+    logger.debug({
+      blobId: request?.params?.id,
+      msg: 'retrieving blob',
+    });
     const blob = await BlobService.getBlob(request.params.id);
 
     if (!blob) {

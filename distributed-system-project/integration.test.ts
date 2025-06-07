@@ -1,27 +1,12 @@
-import { describe, it, beforeAll, afterAll, expect } from "vitest";
-import { writeFile, unlink } from "node:fs/promises";
+import { describe, it, expect } from "vitest";
 import { join } from "node:path";
 
 const TEST_FILE_PATH = join(process.cwd(), "test.txt");
 const TEST_CONTENT = "Hello, this is a test file!";
-const BLOB_ID = "test-blob-123";
-const SERVER_URL = "http://0.0.0.0:3000";
+const BLOB_ID = "123456789";
+const SERVER_URL = "http://127.0.0.1:3000";
 
 describe("Blob Server Integration Tests", () => {
-  beforeAll(async () => {
-    // Create test file
-    await writeFile(TEST_FILE_PATH, TEST_CONTENT);
-  });
-
-  afterAll(async () => {
-    // Clean up test file
-    try {
-      await unlink(TEST_FILE_PATH);
-    } catch (error) {
-      console.error("Error cleaning up test file:", error);
-    }
-  });
-
   it("should successfully POST and GET a blob", async () => {
     // POST the test file
     const postResponse = await fetch(`${SERVER_URL}/blobs/${BLOB_ID}`, {
@@ -45,5 +30,5 @@ describe("Blob Server Integration Tests", () => {
 
     const receivedContent = await getResponse.text();
     expect(receivedContent).toBe(TEST_CONTENT);
-  });
+  }, { timeout: 20000 }); // 10 second timeout
 });

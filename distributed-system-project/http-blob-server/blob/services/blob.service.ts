@@ -4,7 +4,7 @@ import { config } from "../../config.ts";
 import { getFullFileDir } from "../utils/filesystem.ts";
 import { extractRawContent } from "../helpers.ts";
 import type { BlobMetadata } from "../types.ts";
-import { logger } from "../../logger/index.ts";
+import { logger } from "../../../logger/index.ts";
 
 export class GetBlobError extends Error {
   constructor(message?: string) {

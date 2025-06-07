@@ -2,7 +2,7 @@ import Fastify from "fastify";
 import blobPlugin from "./blob/index.ts";
 import { mkdirSync } from "node:fs";
 import { config } from "./config.ts";
-import { logger } from "./logger/index.ts";
+import { logger } from "./../logger/index.ts";
 import type { AddressInfo } from "node:net";
 
 const fastify = Fastify();
