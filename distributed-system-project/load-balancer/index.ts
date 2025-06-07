@@ -50,14 +50,14 @@ fastify.all<{ Params: { id: string } }>(
         // request.ip,
       );
 
-      const res = await axios.request({
+      await axios.request({
         baseURL: `http://${node.destination.host}:${node.destination.port}/blobs/${request.params.id}`,
         headers: headers as any,
         method: request.method,
         data: request.body,
       });
 
-      return res;
+      return replay.status(200).send();
     } catch (e) {
       console.log(e);
 

@@ -9,5 +9,5 @@ export interface RegisteredNode {
 }
 
 export type RegisteredNodeRequest = FastifyRequest<{
-  Body: RegisteredNode;
+  Body: string;
 }>;
