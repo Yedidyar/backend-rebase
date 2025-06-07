@@ -2,3 +2,7 @@ input.txt
 output.txt
 node_modules
 chunk*
+metadata
+storage
+.DS_Store
+*.env
