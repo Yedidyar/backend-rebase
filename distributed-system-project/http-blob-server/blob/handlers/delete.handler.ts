@@ -1,5 +1,5 @@
 import type { FastifyReply, FastifyInstance } from "fastify";
-import { BlobService } from "../services/blob.service.ts";
+import { BlobService, DeleteBlobError } from "../services/blob.service.ts";
 import type { BlobRequest } from "../types.ts";
 import { logger } from "../../logger/index.ts";
 
@@ -13,11 +13,13 @@ export async function deleteBlobHandler(
 
     return reply.code(204).send();
   } catch (error) {
-    logger.error({
-      err: error,
-      msg: `Error deleting files for ${request.params.id}`,
-    });
-
+    if (error instanceof DeleteBlobError) {
+      logger.error({
+        blobId: request?.params?.id,
+        msg: error.message,
+        action: error.name,
+      });
+    }
     return reply.code(500).send();
   }
 }

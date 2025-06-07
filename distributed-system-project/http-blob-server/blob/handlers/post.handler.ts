@@ -3,8 +3,10 @@ import { config } from "../../config.ts";
 import { dirSize } from "../utils/filesystem.ts";
 import { getHeaders } from "../utils/headers.ts";
 import { isValidId } from "../utils/validation.ts";
-import { BlobService } from "../services/blob.service.ts";
+import { BlobService, SaveBlobError } from "../services/blob.service.ts";
 import type { BlobRequest } from "../types.ts";
+import { logger } from "../../logger/index.ts";
+
 
 export async function postBlobHandler(
   request: BlobRequest,
@@ -64,7 +66,17 @@ export async function postBlobHandler(
       errorMessage: `Invalid ID format. Only alphanumeric characters, periods, underscores, and hyphens are allowed, with a maximum length of ${config.MAX_ID_LENGTH} characters.`,
     });
   }
-
-  await BlobService.createBlob(request.params.id, request, headers);
-  return reply.code(204).send();
+  try {
+    await BlobService.createBlob(request.params.id, request, headers);
+    return reply.code(204).send();
+  } catch (error) {
+    if (error instanceof SaveBlobError) {
+      logger.error({
+        blobId: request?.params?.id,
+        msg: error.message,
+        action: error.name,
+      });
+    }
+    return reply.code(500).send();
+  }
 }
