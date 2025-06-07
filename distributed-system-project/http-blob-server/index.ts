@@ -31,7 +31,6 @@ const start = async () => {
       name: config.NODE_NAME,
     });
 
-    console.log(`http://${config.LOAD_BALANCER_ADDRESS}/internal/nodes`);
 
     const res = await fetch(
       `http://${config.LOAD_BALANCER_ADDRESS}/internal/nodes`,
@@ -46,10 +45,17 @@ const start = async () => {
         }),
       }
     );
+
+    if (!res.ok) {
+      const errorText = await res.text();
+      throw new Error(`Failed to register with load balancer: ${res.status} ${errorText}`);
+    }
+
     logger.info({
       message: `server is up and running`,
       address,
-      res,
+      registrationStatus: res.status,
+      registrationStatusText: res.statusText,
     });
   } catch (err) {
     logger.error(err);

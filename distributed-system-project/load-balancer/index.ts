@@ -53,7 +53,7 @@ fastify.all<{ Params: { id: string } }>(
 
 const start = async () => {
   try {
-    await fastify.listen({ port: 3000 });
+    await fastify.listen({ port: 3000, host: "0.0.0.0" });
     const address = fastify.server.address();
     console.log(address);
   } catch (err) {
