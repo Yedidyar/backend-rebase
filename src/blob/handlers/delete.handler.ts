@@ -1,7 +1,7 @@
 import type { FastifyReply, FastifyInstance } from "fastify";
-import { BlobService } from "../services/blob.service.js";
-import type { BlobRequest } from "../types.js";
-import { logger } from "../../logger/index.js";
+import { BlobService } from "../services/blob.service.ts";
+import type { BlobRequest } from "../types.ts";
+import { logger } from "../../logger/index.ts";
 
 export async function deleteBlobHandler(
   request: BlobRequest,

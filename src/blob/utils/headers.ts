@@ -1,4 +1,4 @@
-import type { BlobHeaders, BlobRequest } from "../types.js";
+import type { BlobHeaders, BlobRequest } from "../types.ts";
 import mime from "mime-types";
 
 export function getHeaders(request: BlobRequest): { headers: BlobHeaders } {

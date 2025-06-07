@@ -1,8 +1,8 @@
 import Fastify from "fastify";
-import blobPlugin from "./blob/index.js";
+import blobPlugin from "./blob/index.ts";
 import { mkdirSync } from "node:fs";
-import { config } from "./config.js";
-import { logger } from "./logger/index.js";
+import { config } from "./config.ts";
+import { logger } from "./logger/index.ts";
 
 
 const fastify = Fastify();

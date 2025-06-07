@@ -2,7 +2,7 @@ import { readdir, stat } from "node:fs/promises";
 import { join } from "node:path";
 import { createHash } from "node:crypto";
 import { existsSync } from "node:fs";
-import { config } from "../../config.js";
+import { config } from "../../config.ts";
 
 export async function dirSize(dir: string): Promise<number> {
   const files = await readdir(dir, { withFileTypes: true });

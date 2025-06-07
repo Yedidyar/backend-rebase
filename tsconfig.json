@@ -6,9 +6,11 @@
     "target": "es2022",
     "allowJs": true,
     "resolveJsonModule": true,
+    "noEmit": true,
     "moduleDetection": "force",
     "isolatedModules": true,
     "verbatimModuleSyntax": true,
+    "allowImportingTsExtensions": true,
     /* Strictness */
     "strict": true,
     "noUncheckedIndexedAccess": true,

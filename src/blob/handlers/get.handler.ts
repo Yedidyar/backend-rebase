@@ -1,6 +1,6 @@
 import type { FastifyReply } from "fastify";
-import { BlobService } from "../services/blob.service.js";
-import type { BlobRequest } from "../types.js";
+import { BlobService } from "../services/blob.service.ts";
+import type { BlobRequest } from "../types.ts";
 
 export async function getBlobHandler(
   request: BlobRequest,

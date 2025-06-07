@@ -1,10 +1,10 @@
 import type { FastifyReply } from "fastify";
-import { config } from "../../config.js";
-import { dirSize } from "../utils/filesystem.js";
-import { getHeaders } from "../utils/headers.js";
-import { isValidId } from "../utils/validation.js";
-import { BlobService } from "../services/blob.service.js";
-import type { BlobRequest } from "../types.js";
+import { config } from "../../config.ts";
+import { dirSize } from "../utils/filesystem.ts";
+import { getHeaders } from "../utils/headers.ts";
+import { isValidId } from "../utils/validation.ts";
+import { BlobService } from "../services/blob.service.ts";
+import type { BlobRequest } from "../types.ts";
 
 export async function postBlobHandler(
   request: BlobRequest,

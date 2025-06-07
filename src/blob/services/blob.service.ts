@@ -1,10 +1,10 @@
 import { mkdir, readFile, rm, writeFile } from "node:fs/promises";
 import { createReadStream, existsSync } from "node:fs";
-import { config } from "../../config.js";
-import { getFullFileDir } from "../utils/filesystem.js";
-import { extractRawContent } from "../helpers.js";
-import type { BlobMetadata } from "../types.js";
-import { logger } from "../../logger/index.js";
+import { config } from "../../config.ts";
+import { getFullFileDir } from "../utils/filesystem.ts";
+import { extractRawContent } from "../helpers.ts";
+import type { BlobMetadata } from "../types.ts";
+import { logger } from "../../logger/index.ts";
 
 export class BlobService {
   static async getBlob(id: string) {
