@@ -6,6 +6,6 @@ export async function nodeRegistrationRouter(
   fastify: FastifyInstance,
   options: object
 ) {
-  fastify.get("/internal/nodes/", getNodes);
-  fastify.post("/internal/nodes/", postNodes);
+  fastify.get("/nodes", getNodes);
+  fastify.post("/nodes", postNodes);
 }

@@ -17,6 +17,7 @@ services:
     environment:
       - PORT=3001
       - NODE_NAME=http-blob-server-1
+      - LOAD_BALANCER_ADDRESS: load-balancer
     ports:
       - "3001:3001"
     depends_on:
@@ -29,6 +30,7 @@ services:
     environment:
       - PORT=3002
       - NODE_NAME=http-blob-server-2
+      - LOAD_BALANCER_ADDRESS: load-balancer
     ports:
       - "3002:3002"
     depends_on:
@@ -41,6 +43,7 @@ services:
     environment:
       - PORT=3003
       - NODE_NAME=http-blob-server-3
+      - LOAD_BALANCER_ADDRESS: load-balancer
     ports:
       - "3003:3003"
     depends_on:

@@ -2,38 +2,8 @@ import Fastify from "fastify";
 import { createHash } from "node:crypto";
 import axios from "axios";
 import { toTitleCase } from "../string-utils/to-title-case.ts";
+import registerPlugin, { type RegisteredNode } from './register/index.ts'
 
-interface RegisteredNode {
-  destination: {
-    host: string;
-    port: number;
-  };
-  name: string;
-}
-
-const registeredNodes = [
-  {
-    destination: {
-      host: "localhost",
-      port: 3001,
-    },
-    name: "node-1",
-  },
-  // {
-  //   destination: {
-  //     host: "localhost",
-  //     port: 3002,
-  //   },
-  //   name: "node-2",
-  // },
-  // {
-  //   destination: {
-  //     host: "localhost",
-  //     port: 3003,
-  //   },
-  //   name: "node-3",
-  // },
-] satisfies RegisteredNode[];
 
 function getDownstreamNode(
   requestId: string,
@@ -53,6 +23,8 @@ fastify.addContentTypeParser(
     done(null, body);
   }
 );
+
+fastify.register(registerPlugin, { prefix: '/internal' })
 
 fastify.all<{ Params: { id: string } }>(
   "/blobs/:id",

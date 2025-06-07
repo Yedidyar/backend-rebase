@@ -20,6 +20,13 @@ const start = async () => {
 
     await fastify.listen({ port: PORT });
     const address = fastify.server.address();
+    await fetch(`http://${config.LOAD_BALANCER_ADDRESS}/internal/nodes`, {
+      method: "POST",
+      body: JSON.stringify({
+        node_name: config.NODE_NAME,
+        node_address: `http://${address}`,
+      }),
+    });
     logger.info({
       message: `server is up and running`,
       address,
