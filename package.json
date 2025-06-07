@@ -6,7 +6,7 @@
   "type": "module",
   "scripts": {
     "test": "vitest",
-    "dev": "tsx --env-file=.env --watch src/index.ts"
+    "dev": "node --env-file=.env --watch src/index.ts"
   },
   "keywords": [],
   "author": "",
