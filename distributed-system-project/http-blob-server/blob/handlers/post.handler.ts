@@ -10,8 +10,6 @@ export async function postBlobHandler(
   request: BlobRequest,
   reply: FastifyReply
 ): Promise<FastifyReply> {
-  console.log("I am here");
-
   if (Object.keys(request.headers).length > config.MAX_HEADER_COUNT) {
     return reply.code(413).send({
       errorMessage: "Too many headers",

@@ -1,5 +1,13 @@
 import Fastify from "fastify";
 import { createHash } from "node:crypto";
+import axios from "axios";
+
+function toTitleCase(str: string) {
+  return str.replace(
+    /\w\S*/g,
+    (text) => text.charAt(0).toUpperCase() + text.substring(1).toLowerCase()
+  );
+}
 
 const ALLOWED_APIS = {
   POST: ["/blobs/*"],
@@ -50,9 +58,13 @@ function getDownstreamNode(
 
 const fastify = Fastify();
 
-fastify.addContentTypeParser("*", function (request, payload, done) {
-  done(null, request);
-});
+fastify.addContentTypeParser(
+  "*",
+  { parseAs: "buffer", bodyLimit: Infinity },
+  (req, body, done) => {
+    done(null, body);
+  }
+);
 
 fastify.all<{ Params: { id: string } }>(
   "/blobs/:id",
@@ -62,20 +74,27 @@ fastify.all<{ Params: { id: string } }>(
     }
     try {
       const headerEntries = Object.entries(request.headers).map(
-        ([key, value]) => [key, value?.toString() || ""] as [string, string]
+        ([key, value]) =>
+          [toTitleCase(key), value?.toString() || ""] as [string, string]
       );
       const headers = new Headers(headerEntries);
       headers.set("Host", request.host);
 
       const node = getDownstreamNode(request.ip, registeredNodes);
 
-      const res = await fetch(
-        `http://${node.destination.host}:${node.destination.port}/blobs/${request.params.id}`,
-        { headers, method: request.method, body: request.body }
-      );
+      console.log(headers);
+
+      const res = await axios.request({
+        baseURL: `http://${node.destination.host}:${node.destination.port}/blobs/${request.params.id}`,
+        headers: headers as any,
+        method: request.method,
+        data: request.body,
+      });
 
       return res;
-    } catch {
+    } catch (e) {
+      console.log(e);
+
       replay.status(503).send();
     }
   }
