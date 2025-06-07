@@ -12,25 +12,17 @@ A lightweight and efficient blob storage server built with Fastify. This server 
 
 ## Prerequisites
 
-- Node.js v23 or higher
-- pnpm package manager
+- Docker
+- docker-compose
 
-## Installation
-
-1. Clone the repository:
+Run the project:
 ```bash
-git clone <repository-url>
-cd backend-rebase
+pnpm run malic:up
 ```
 
-2. Install dependencies:
+Kill the project:
 ```bash
-npm install
-```
-
-3. Build the project:
-```bash
-npm run build
+pnpm run malic:down
 ```
 
 ## Configuration
