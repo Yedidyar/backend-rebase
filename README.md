@@ -1,32 +1,23 @@
 # Blob Server
 
-A lightweight and efficient blob storage server built with Fastify. This server provides a simple REST API for storing, retrieving, and managing binary data (blobs).
-
-## Features
-
-- Store and retrieve binary data
-- Automatic metadata management
-- Configurable storage limits
-- RESTful API endpoints
-- Built with Fastify for high performance
-
 ## Prerequisites
 
-- Docker
-- docker-compose
+- pnpm
+- node v23+
 
-Run the project:
+## Running the project
 
-```bash
-pnpm run malic:up
-```
-
-Kill the project:
+When running for the first time:
 
 ```bash
-pnpm run malic:down
+chmod +x start-services.sh
 ```
 
+Start the server with:
+
+```bash
+pnpm malic:up
+```
 ## Configuration
 
 The server can be configured through the `config.ts` file. Here are the default settings:
@@ -40,17 +31,22 @@ The server can be configured through the `config.ts` file. Here are the default 
 - `MAX_ID_LENGTH`: 200 - Maximum length of blob IDs
 - `MAX_BLOBS_IN_FOLDER`: 1 - Maximum number of blobs per folder
 
-## Running the Server
 
-Start the server with:
-
-```bash
-npm start
-```
-
-The server will start on port 3000 by default.
+load balancer will start on port 3000 by default.
 
 ## API Endpoints
+### internal enpoints for load balancer management
+
+```http
+POST /internal/nodes
+ - register a node to the load balancer
+```
+
+```http
+GET /internal/nodes
+ - get data of nodes registered to the load balancer
+```
+
 
 ### Store a Blob
 
@@ -81,19 +77,3 @@ DELETE /blobs/:id
 - `404 Not Found`: Blob not found
 - `413 Payload Too Large`: Blob exceeds size limits
 - `500 Internal Server Error`: Server error
-
-## Error Handling
-
-The server includes comprehensive error handling and logging. All errors are logged using the built-in logger.
-
-## Development
-
-To run the server in development mode with hot reloading:
-
-```bash
-npm run dev
-```
-
-## License
-
-[Add your license information here]
