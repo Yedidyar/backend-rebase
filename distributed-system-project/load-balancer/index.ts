@@ -1,11 +1,22 @@
 import Fastify from "fastify";
-import { createHash } from "node:crypto";
 import axios from "axios";
 import { toTitleCase } from "../string-utils/to-title-case.ts";
-import registerPlugin, {
-  NodeRegistrationService,
-  type RegisteredNode,
-} from "./register/index.ts";
+import registerPlugin, { NodeRegistrationService } from "./register/index.ts";
+import { config } from "./config.ts";
+
+export class Readiness {
+  private isReady = false;
+
+  getIsReady(): boolean {
+    return this.isReady;
+  }
+
+  markAsReady() {
+    this.isReady = true;
+  }
+}
+
+export const readiness = new Readiness();
 
 const fastify = Fastify();
 
@@ -22,6 +33,10 @@ fastify.register(registerPlugin, { prefix: "/internal" });
 fastify.all<{ Params: { id: string } }>(
   "/blobs/:id",
   async (request, replay) => {
+    if (!readiness.getIsReady()) {
+      return replay.status(503).send({ error: "Service not ready" });
+    }
+
     try {
       const headerEntries = Object.entries(request.headers).map(
         ([key, value]) =>
@@ -53,6 +68,9 @@ fastify.all<{ Params: { id: string } }>(
 
 const start = async () => {
   try {
+    setTimeout(() => {
+      readiness.markAsReady();
+    }, 1000 * config.REGISTRATION_DURATION_SECONDS);
     await fastify.listen({ port: 3000, host: "0.0.0.0" });
     const address = fastify.server.address();
     console.log(address);

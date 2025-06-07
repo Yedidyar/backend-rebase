@@ -1,5 +1,6 @@
 import { createHash } from "node:crypto";
 import type { RegisteredNode } from "../../types.ts";
+import { readiness } from "../../../index.ts";
 
 export class NodeRegistrationService {
   private static registeredNodes: RegisteredNode[] = [];
@@ -9,6 +10,11 @@ export class NodeRegistrationService {
   }
 
   static addNode(node: RegisteredNode) {
+    if (readiness.getIsReady()) {
+      throw new Error(
+        "the request was rejected because registration period is over"
+      );
+    }
     this.registeredNodes.push(node);
   }
 
