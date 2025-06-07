@@ -45,10 +45,7 @@ fastify.all<{ Params: { id: string } }>(
       const headers = new Headers(headerEntries);
       headers.set("Host", request.host);
 
-      const node = NodeRegistrationService.getDownstreamNode(
-        `${Math.random()}`
-        // request.ip,
-      );
+      const node = NodeRegistrationService.getDownstreamNode(request.params.id);
 
       await axios.request({
         baseURL: `http://${node.destination.host}:${node.destination.port}/blobs/${request.params.id}`,
