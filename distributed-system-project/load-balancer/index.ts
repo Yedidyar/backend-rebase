@@ -2,17 +2,10 @@ import Fastify from "fastify";
 import { createHash } from "node:crypto";
 import axios from "axios";
 import { toTitleCase } from "../string-utils/to-title-case.ts";
-import registerPlugin, { type RegisteredNode } from './register/index.ts'
-
-
-function getDownstreamNode(
-  requestId: string,
-  registeredNodes: RegisteredNode[]
-) {
-  const hash = createHash("md5").update(requestId).digest("hex");
-
-  return registeredNodes[parseInt(hash, 16) % registeredNodes.length]!;
-}
+import registerPlugin, {
+  NodeRegistrationService,
+  type RegisteredNode,
+} from "./register/index.ts";
 
 const fastify = Fastify();
 
@@ -24,7 +17,7 @@ fastify.addContentTypeParser(
   }
 );
 
-fastify.register(registerPlugin, { prefix: '/internal' })
+fastify.register(registerPlugin, { prefix: "/internal" });
 
 fastify.all<{ Params: { id: string } }>(
   "/blobs/:id",
@@ -37,7 +30,10 @@ fastify.all<{ Params: { id: string } }>(
       const headers = new Headers(headerEntries);
       headers.set("Host", request.host);
 
-      const node = getDownstreamNode(request.ip, registeredNodes);
+      const node = NodeRegistrationService.getDownstreamNode(
+        `${Math.random()}`
+        // request.ip,
+      );
 
       const res = await axios.request({
         baseURL: `http://${node.destination.host}:${node.destination.port}/blobs/${request.params.id}`,
