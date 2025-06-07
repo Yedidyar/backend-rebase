@@ -6,7 +6,7 @@
   "type": "module",
   "scripts": {
     "test": "vitest",
-    "dev": "node --env-file=.env --watch src/index.ts"
+    "http-blob-server:dev": "node --env-file=.env --watch distributed-system-project/http-blob-server/index.ts"
   },
   "keywords": [],
   "author": "",
