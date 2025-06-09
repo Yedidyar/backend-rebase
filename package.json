@@ -11,7 +11,6 @@
     "load-balancer:dev": "node --env-file=.env --watch distributed-system-project/load-balancer/index.ts",
     "load-balancer:prod": "node --env-file=.env distributed-system-project/load-balancer/index.ts",
     "malic:up": "./start-services.sh",
-    "malic:down": "docker-compose down",
     "format": "prettier . --write"
   },
   "keywords": [],

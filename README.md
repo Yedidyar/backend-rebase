@@ -18,6 +18,7 @@ Start the server with:
 ```bash
 pnpm malic:up
 ```
+
 ## Configuration
 
 The server can be configured through the `config.ts` file. Here are the default settings:
@@ -31,10 +32,10 @@ The server can be configured through the `config.ts` file. Here are the default 
 - `MAX_ID_LENGTH`: 200 - Maximum length of blob IDs
 - `MAX_BLOBS_IN_FOLDER`: 1 - Maximum number of blobs per folder
 
-
 load balancer will start on port 3000 by default.
 
 ## API Endpoints
+
 ### internal enpoints for load balancer management
 
 ```http
@@ -46,7 +47,6 @@ POST /internal/nodes
 GET /internal/nodes
  - get data of nodes registered to the load balancer
 ```
-
 
 ### Store a Blob
 

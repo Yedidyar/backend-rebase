@@ -10,7 +10,7 @@ export async function getBlobHandler(
   try {
     logger.debug({
       blobId: request?.params?.id,
-      msg: 'retrieving blob',
+      msg: "retrieving blob",
     });
     const blob = await BlobService.getBlob(request.params.id);
 
@@ -27,6 +27,7 @@ export async function getBlobHandler(
         blobId: request?.params?.id,
         msg: error.message,
         action: error.name,
+        cause: error.cause,
       });
     }
     return reply.code(500).send();
