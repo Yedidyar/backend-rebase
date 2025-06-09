@@ -6,7 +6,7 @@ import { logger } from "../../../../logger/index.ts";
 export class RegistrationError extends Error {
   constructor(message?: string) {
     super(message);
-    this.name = 'node registration';
+    this.name = "node registration";
   }
 }
 
@@ -19,7 +19,9 @@ export class NodeRegistrationService {
 
   static addNode(node: RegisteredNode) {
     if (readiness.getIsReady()) {
-      throw new RegistrationError('the request was rejected because registration period is over');
+      throw new RegistrationError(
+        "the request was rejected because registration period is over",
+      );
     }
     this.registeredNodes.push(node);
   }

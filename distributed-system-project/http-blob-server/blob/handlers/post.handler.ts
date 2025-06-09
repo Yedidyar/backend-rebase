@@ -7,7 +7,6 @@ import { BlobService, SaveBlobError } from "../services/blob.service.ts";
 import type { BlobRequest } from "../types.ts";
 import { logger } from "../../../logger/index.ts";
 
-
 export async function postBlobHandler(
   request: BlobRequest,
   reply: FastifyReply,
@@ -67,12 +66,11 @@ export async function postBlobHandler(
     });
   }
   try {
-
     logger.debug({
       blobId: request?.params?.id,
-      msg: 'saving blob',
+      msg: "saving blob",
     });
-    await BlobService.createBlob(request.params.id, request, headers);
+    await BlobService.createBlob(request.params.id, request.raw, headers);
     return reply.code(204).send();
   } catch (error) {
     if (error instanceof SaveBlobError) {
@@ -80,6 +78,7 @@ export async function postBlobHandler(
         blobId: request?.params?.id,
         msg: error.message,
         action: error.name,
+        cause: error.cause,
       });
     }
     return reply.code(500).send();

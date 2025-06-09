@@ -9,10 +9,9 @@ export async function deleteBlobHandler(
   fastify: FastifyInstance,
 ): Promise<FastifyReply> {
   try {
-
     logger.debug({
-      blobId: request?.params?.id,
-      msg: 'deleting node',
+      blobId: request?.params?.id ?? "n/a",
+      msg: "deleting node",
     });
     await BlobService.deleteBlob(request.params.id);
 
@@ -23,6 +22,14 @@ export async function deleteBlobHandler(
         blobId: request?.params?.id,
         msg: error.message,
         action: error.name,
+        cause: error.cause,
+      });
+    } else {
+      logger.error({
+        blobId: request?.params?.id,
+        msg: error instanceof Error ? error.message : "Unknown error occurred",
+        error: error,
+        cause: error,
       });
     }
     return reply.code(500).send();

@@ -9,6 +9,13 @@ const fastify = Fastify();
 
 fastify.register(blobPlugin, { prefix: "/blobs" });
 
+const handleRegistrationError = async (res: Response) => {
+  const errorText = await res.text();
+  throw new Error(
+    `Failed to register with load balancer: ${res.status} ${errorText}`,
+  );
+};
+
 /**
  * Run the server!
  */
@@ -18,7 +25,7 @@ const start = async () => {
     mkdirSync(config.BLOBS_DIR, { recursive: true });
     mkdirSync(config.METADATA_DIR, { recursive: true });
 
-    await fastify.listen({ port: config.PORT, host: "127.0.0.1" });
+    await fastify.listen({ port: config.PORT, host: "0.0.0.0" });
     const address = fastify.server.address() as AddressInfo;
 
     const res = await fetch(
@@ -36,10 +43,7 @@ const start = async () => {
     );
 
     if (!res.ok) {
-      const errorText = await res.text();
-      throw new Error(
-        `Failed to register with load balancer: ${res.status} ${errorText}`,
-      );
+      await handleRegistrationError(res);
     }
 
     logger.info({
