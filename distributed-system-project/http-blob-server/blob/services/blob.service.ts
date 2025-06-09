@@ -104,11 +104,14 @@ export class BlobService {
         )
       ) {
         const errorMessages = [];
+
         if (metadataDeleteResult.status === "rejected")
           errorMessages.push("Couldn't delete metadata");
         if (blobDeleteResult.status === "rejected")
           errorMessages.push("Couldn't delete blob");
+
         const message = errorMessages.join("\n");
+
         throw new Error(message);
       }
 
