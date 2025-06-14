@@ -28,8 +28,17 @@ export class KeyValueLinkedList<T> {
       this.tail = current;
       return current;
     }
+    
+    if (this.head === this.tail) {
+      const current: KeyValueNode<T> = { prev: this.head, value, next: null };
+      this.head!.next = current;
+      this.tail = current;
+      return current;
+    }
+
     const current: KeyValueNode<T> = { prev: this.tail, value, next: null };
-    this.tail!.next = current
+    this.tail = current;
+    
     return current;
   }
 
@@ -55,6 +64,14 @@ export class KeyValueLinkedList<T> {
     parentOfNode.next = childOfNode
     childOfNode.prev = parentOfNode
     return
+  }
+
+  getHead(): KeyValueNode<T> | null {
+    return this.head;
+  }
+
+  getTail(): KeyValueNode<T> | null {
+    return this.tail;
   }
 
   // for debugging
