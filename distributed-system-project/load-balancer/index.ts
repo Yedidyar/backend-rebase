@@ -78,7 +78,7 @@ fastify.all<{ Params: { id: string } }>(
         logger.error({
           blobId: request.params.id,
           msg: "Bad response from downstream service",
-          action: "GET blob",
+          action: `${request.method} blob"`,
           cause: axiosError.cause,
         });
 
@@ -93,7 +93,7 @@ fastify.all<{ Params: { id: string } }>(
         logger.error({
           blobId: request.params.id,
           msg: "No response from downstream service",
-          action: "GET blob",
+          action: `${request.method} blob"`,
           cause: axiosError.cause,
         });
         return reply
@@ -103,7 +103,7 @@ fastify.all<{ Params: { id: string } }>(
       logger.error({
         blobId: request.params.id,
         msg: "Internal server error",
-        action: "GET blob",
+        action: `${request.method} blob"`,
         cause: axiosError.cause,
       });
       return reply
