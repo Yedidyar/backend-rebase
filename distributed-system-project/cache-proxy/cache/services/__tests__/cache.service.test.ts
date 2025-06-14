@@ -38,21 +38,8 @@ describe("LRUCacheService", () => {
 
       cache.put("key3", new ArrayBuffer(8));
 
-      // console.log({
-      //   head: cache.linkedList.getHead(),
-      //   tail: cache.linkedList.getTail(),
-      //   value: "key3",
-      // }
-      // );
-
       // // Add one more item
       cache.put("key4", new ArrayBuffer(8));
-
-      // console.log({
-      //   head: cache.linkedList.getHead(),
-      //   tail: cache.linkedList.getTail(),
-      //   value: "key4",
-      // })
 
       // key1 should be evicted as it was the least recently used
       expect(cache.tryGet("key1")).toBeNull();
