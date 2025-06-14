@@ -23,62 +23,43 @@ describe("LRUCacheService", () => {
     it("should evict least recently used item when capacity is reached", () => {
       // Fill cache to capacity
       cache.put("key1", new ArrayBuffer(8));
-      console.log(
-        JSON.stringify(
-          {
-            head: cache.linkedList.getHead(),
-            tail: cache.linkedList.getTail(),
-            value: "key1",
-          },
-          null,
-          2,
-        ),
+      console.log({
+        head: cache.linkedList.getHead(),
+        tail: cache.linkedList.getTail(),
+        value: "key1",
+      }
       );
 
       cache.put("key2", new ArrayBuffer(8));
-      console.log(
-        JSON.stringify(
-          {
-            head: cache.linkedList.getHead(),
-            tail: cache.linkedList.getTail(),
-            value: "key2",
-          },
-          null,
-          2,
-        ),
+      console.log({
+        head: cache.linkedList.getHead(),
+        tail: cache.linkedList.getTail(),
+        value: "key2",
+      }
       );
 
       cache.put("key3", new ArrayBuffer(8));
 
-      console.log(
-        JSON.stringify(
-          {
-            head: cache.linkedList.getHead(),
-            tail: cache.linkedList.getTail(),
-            value: "key3",
-          },
-          null,
-          2,
-        ),
-      );
+      // console.log({
+      //   head: cache.linkedList.getHead(),
+      //   tail: cache.linkedList.getTail(),
+      //   value: "key3",
+      // }
+      // );
 
-      // Add one more item
+      // // Add one more item
       cache.put("key4", new ArrayBuffer(8));
 
-      console.log(
-        JSON.stringify(
-          {
-            head: cache.linkedList.getHead(),
-            tail: cache.linkedList.getTail(),
-            value: "key4",
-          },
-          null,
-          2,
-        ),
-      );
+      // console.log({
+      //   head: cache.linkedList.getHead(),
+      //   tail: cache.linkedList.getTail(),
+      //   value: "key4",
+      // })
 
       // key1 should be evicted as it was the least recently used
       expect(cache.tryGet("key1")).toBeNull();
+      expect(cache.tryGet("key2")).not.toBeNull();
+      expect(cache.tryGet("key3")).not.toBeNull();
       expect(cache.tryGet("key4")).not.toBeNull();
     });
   });
