@@ -91,7 +91,7 @@ export class KeyValueLinkedList<T> {
   *[Symbol.iterator]() {
     let curr: KeyValueNode<T> | null = this.head;
     while (curr) {
-      yield curr.value;
+      yield `value: ${curr.value?.[0] ?? null} prev: ${curr.prev?.value?.[0] ?? null} next: ${curr.next?.value?.[0] ?? null}`;
       curr = curr.next;
     }
   }
