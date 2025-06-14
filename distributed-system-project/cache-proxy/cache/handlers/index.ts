@@ -36,7 +36,7 @@ export async function getBlobHandler(
 ) {
   const value = cache.tryGet(request.params.id);
   if (value) {
-    return reply.header("X-Cache", "HIT").send(value).status(200);
+    return reply.header("X-Cache", "HIT").send(value.value[1]).status(200);
   }
   try {
     const res = await axios.request({
