@@ -1,36 +1,49 @@
-import { createHash } from "node:crypto";
-import type { RegisteredNode } from "../types.ts";
-import { readiness } from "../../index.ts";
-import { logger } from "../../../logger/index.ts";
-
-// export class CacheError extends Error {
-//   constructor(message?: string) {
-//     super(message);
-//     this.name = "node cache";
-//   }
-// }
+import { KeyValueLinkedList, type KeyValueNode } from "../../../linked-list/index.ts";
 
 export class CacheService {
-  private static registeredNodes: RegisteredNode[] = [];
+  private cache: Map<string, KeyValueNode<ArrayBuffer>>
+  private capacity: number;
+  private linkedList: KeyValueLinkedList<ArrayBuffer>;
 
-  static getAll() {
-    return this.registeredNodes;
+  constructor(capacity: number) {
+    this.cache = new Map();
+    this.capacity = capacity;
+    this.linkedList = new KeyValueLinkedList();
   }
 
-  static addNode(node: RegisteredNode) {
-    if (readiness.getIsReady()) {
-      // throw new CacheError(
-      //   "the request was rejected because cache period is over",
-      // );
+  clear() {
+    this.linkedList = new KeyValueLinkedList();
+    this.cache = new Map();
+  }
+
+  put(id: string, value: ArrayBuffer) {
+    const node = this.linkedList.add([id, value])
+    this.cache.set(id, node);
+    const isMaxCapacity = this.cache.size === this.capacity
+    if(isMaxCapacity){
+      const prevHeadKey = this.linkedList.shift();
+      if(prevHeadKey) this.cache.delete(prevHeadKey);
     }
-    this.registeredNodes.push(node);
   }
 
-  static getDownstreamNode(requestId: string) {
-    const hash = createHash("md5").update(requestId).digest("hex");
-
-    return this.registeredNodes[
-      parseInt(hash, 16) % this.registeredNodes.length
-    ]!;
+  private moveNodeToTopOfList(node: KeyValueNode<ArrayBuffer>): void {
+    this.linkedList.remove(node);
+    this.linkedList.add(node.value);
   }
+
+
+  tryGet(id: string): KeyValueNode<ArrayBuffer> | null {
+    const lastNodeUsed = this.cache.get(id);
+    if(!lastNodeUsed) return null
+    this.moveNodeToTopOfList(lastNodeUsed)
+    return lastNodeUsed;
+  }
+
+  remove(id: string) {
+    const nodeToRemove = this.cache.get(id)
+    if(!nodeToRemove) return
+    this.linkedList.remove(nodeToRemove);
+    this.cache.delete(id);
+  }
+
 }

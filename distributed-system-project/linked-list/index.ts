@@ -1,10 +1,8 @@
-interface KeyValueNode<T> {
+export interface KeyValueNode<T> {
   prev: KeyValueNode<T> | null;
   value: [string, T];
   next: KeyValueNode<T> | null;
 }
-
-const KEY_INDEX = 0;
 
 export class KeyValueLinkedList<T> {
   private head: KeyValueNode<T> | null;
@@ -14,53 +12,49 @@ export class KeyValueLinkedList<T> {
     this.head = null;
     this.tail = null;
   }
-  add(value: [string, T]) {
-    let curr: KeyValueNode<T> | null = this.head;
-    if (condition) {
-        while (curr) {
-          if (curr.value[KEY_INDEX] === value[KEY_INDEX]) {
-            curr.value = value;
-            return;
-          }
-          curr = curr.next;
-        }
-    }
 
-    this.head = {
-      prev: this.head.prev,
-      value,
-      next: this.head,
-    };
+  shift(): string | null {
+    if(!this.head) return null
+    const keyOfHead = this.head.value[0];
+    this.head = this.head.next;
+    return keyOfHead; 
   }
 
-  get(key: string) {
-    let curr: KeyValueNode<T> | null = this.head;
-    while (curr) {
-      if (curr.value[KEY_INDEX] === key) {
-        return curr.value;
-      }
-      curr = curr.next;
+  add(value: [string, T]): KeyValueNode<T> {
+    const isListEmpty = !this.head && !this.tail
+    if (isListEmpty) {
+      const current: KeyValueNode<T> = { prev: null, value, next: null };
+      this.head = current;
+      this.tail = current;
+      return current;
     }
-    return null;
+    const current: KeyValueNode<T> = { prev: this.tail, value, next: null };
+    this.tail!.next = current
+    return current;
   }
 
-  remove(key: string) {
-    let curr: KeyValueNode<T> | null = this.head;
-    let prev: KeyValueNode<T> | null = null;
-
-    while (curr) {
-      if (curr.value[KEY_INDEX] === key) {
-        if (prev) {
-          prev.next = curr.next;
-        } else {
-          this.head = null;
-        }
-        return curr.value;
-      }
-      prev = curr;
-      curr = curr.next;
+  remove(nodeToRemove: KeyValueNode<T>) {
+    const isHead = nodeToRemove === this.head;
+    const isTail = nodeToRemove === this.head;
+    const isSingleNode = isHead && isTail;
+    if (isSingleNode) {
+      this.head = null
+      this.tail = null
+      return
     }
-    return null;
+    if (isHead) {
+      this.head = nodeToRemove.next
+      return
+    }
+    if (isTail) {
+      this.tail = nodeToRemove.prev
+      return
+    }
+    const parentOfNode = nodeToRemove.prev!;
+    const childOfNode = nodeToRemove.next!;
+    parentOfNode.next = childOfNode
+    childOfNode.prev = parentOfNode
+    return
   }
 
   // for debugging
