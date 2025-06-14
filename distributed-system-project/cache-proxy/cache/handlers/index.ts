@@ -3,7 +3,7 @@ import { config } from "../../config.ts";
 import axios, { AxiosError } from "axios";
 import { toTitleCase } from "../../../string-utils/to-title-case.ts";
 import type { FastifyReply, FastifyRequest } from "fastify";
-import { logger } from "../../../logger/index.ts";
+import { logger } from "../../index.ts";
 
 const cache = new LRUCacheService(config.MAX_ITEMS_IN_CACHE);
 
@@ -50,12 +50,12 @@ export async function getBlobHandler(
 
     return reply.header("X-Cache", "MISS").send(res.data);
   } catch (error) {
-    console.log(error);
-
     const axiosError = error as AxiosError;
 
     if (axiosError.response) {
       const status = axiosError.response.status;
+
+      console.log(status);
 
       if (status === 404) {
         return reply.status(404).send({ error: "Resource not found" });

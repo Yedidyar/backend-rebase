@@ -1,5 +1,8 @@
 import Fastify from "fastify";
 import { blobCachedRoutes } from "./cache/routes.ts";
+import { createLogger } from "../logger/index.ts";
+
+export const logger = createLogger("cache-proxy");
 
 const fastify = Fastify();
 

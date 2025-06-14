@@ -4,7 +4,7 @@ import {
   NodeRegistrationService,
   RegistrationError,
 } from "../services/internal/nodes.service.ts";
-import { logger } from "../../../logger/index.ts";
+import { logger } from "../../index.ts";
 
 export async function postNodes(
   request: RegisteredNodeRequest,
