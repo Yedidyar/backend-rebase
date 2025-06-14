@@ -5,7 +5,7 @@ import { createHash } from "node:crypto";
 
 async function createSortedChunks(
   linesPerChunk = 100_000,
-  inputPath = "input.txt"
+  inputPath = "input.txt",
 ) {
   const fileStream = fs.createReadStream(inputPath);
 

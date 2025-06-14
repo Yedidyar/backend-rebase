@@ -1,14 +1,15 @@
 import type { FastifyReply } from "fastify";
-import { config } from "../../config.js";
-import { dirSize } from "../utils/filesystem.js";
-import { getHeaders } from "../utils/headers.js";
-import { isValidId } from "../utils/validation.js";
-import { BlobService } from "../services/blob.service.js";
-import type { BlobRequest } from "../types.js";
+import { config } from "../../config.ts";
+import { dirSize } from "../utils/filesystem.ts";
+import { getHeaders } from "../utils/headers.ts";
+import { isValidId } from "../utils/validation.ts";
+import { BlobService, SaveBlobError } from "../services/blob.service.ts";
+import type { BlobRequest } from "../types.ts";
+import { logger } from "../../../logger/index.ts";
 
 export async function postBlobHandler(
   request: BlobRequest,
-  reply: FastifyReply
+  reply: FastifyReply,
 ): Promise<FastifyReply> {
   if (Object.keys(request.headers).length > config.MAX_HEADER_COUNT) {
     return reply.code(413).send({
@@ -64,7 +65,22 @@ export async function postBlobHandler(
       errorMessage: `Invalid ID format. Only alphanumeric characters, periods, underscores, and hyphens are allowed, with a maximum length of ${config.MAX_ID_LENGTH} characters.`,
     });
   }
-
-  await BlobService.createBlob(request.params.id, request, headers);
-  return reply.code(204).send();
+  try {
+    logger.debug({
+      blobId: request?.params?.id,
+      msg: "saving blob",
+    });
+    await BlobService.createBlob(request.params.id, request.raw, headers);
+    return reply.code(204).send();
+  } catch (error) {
+    if (error instanceof SaveBlobError) {
+      logger.error({
+        blobId: request?.params?.id,
+        msg: error.message,
+        action: error.name,
+        cause: error.cause,
+      });
+    }
+    return reply.code(500).send();
+  }
 }

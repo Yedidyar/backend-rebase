@@ -2,19 +2,26 @@
   "name": "backend-rebase",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
+  "main": "index.ts",
   "type": "module",
   "scripts": {
     "test": "vitest",
-    "dev": "tsx --env-file=.env --watch src/index.ts"
+    "http-blob-server:dev": "node --env-file=.env --watch distributed-system-project/http-blob-server/index.ts",
+    "http-blob-server:prod": "node --env-file=.env distributed-system-project/http-blob-server/index.ts",
+    "load-balancer:dev": "node --env-file=.env --watch distributed-system-project/load-balancer/index.ts",
+    "load-balancer:prod": "node --env-file=.env distributed-system-project/load-balancer/index.ts",
+    "malic:up": "./start-services.sh",
+    "format": "prettier . --write"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "axios": "^1.9.0",
     "fastify": "^5.3.3",
     "heap-js": "^2.6.0",
     "mime-types": "^3.0.1",
+    "prettier": "^3.5.3",
     "winston": "^3.17.0",
     "winston-logzio": "^5.2.0"
   },

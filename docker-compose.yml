@@ -1,0 +1,60 @@
+services:
+  load-balancer:
+    build:
+      context: .
+      dockerfile: distributed-system-project/load-balancer/Dockerfile
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+    networks:
+      - app-network
+
+  http-blob-server-1:
+    build:
+      context: .
+      dockerfile: distributed-system-project/http-blob-server/Dockerfile
+    environment:
+      - PORT=3001
+      - NODE_NAME=http-blob-server-1
+      - LOAD_BALANCER_ADDRESS=load-balancer:3000
+    ports:
+      - "3001:3001"
+    depends_on:
+      - load-balancer
+    networks:
+      - app-network
+
+  http-blob-server-2:
+    build:
+      context: .
+      dockerfile: distributed-system-project/http-blob-server/Dockerfile
+    environment:
+      - PORT=3002
+      - NODE_NAME=http-blob-server-2
+      - LOAD_BALANCER_ADDRESS=load-balancer:3000
+    ports:
+      - "3002:3002"
+    depends_on:
+      - load-balancer
+    networks:
+      - app-network
+
+  http-blob-server-3:
+    build:
+      context: .
+      dockerfile: distributed-system-project/http-blob-server/Dockerfile
+    environment:
+      - PORT=3003
+      - NODE_NAME=http-blob-server-3
+      - LOAD_BALANCER_ADDRESS=load-balancer:3000
+    ports:
+      - "3003:3003"
+    depends_on:
+      - load-balancer
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    driver: bridge

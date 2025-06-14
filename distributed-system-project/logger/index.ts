@@ -5,7 +5,6 @@ const logzioWinstonTransport = new LogzioWinstonTransport({
   name: "winston_logzio",
   token: process.env.LOGZIO_TOKEN!,
   host: process.env.LISTENER_URL,
-  
 });
 
 export const logger = winston.createLogger({
@@ -15,7 +14,7 @@ export const logger = winston.createLogger({
     new winston.transports.Console({
       format: winston.format.combine(
         winston.format.colorize(),
-        winston.format.simple()
+        winston.format.simple(),
       ),
     }),
   ],
