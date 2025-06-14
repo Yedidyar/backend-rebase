@@ -71,8 +71,6 @@ fastify.all<{ Params: { id: string } }>(
       if (axiosError.response) {
         const status = axiosError.response.status;
 
-        console.log(status);
-
         if (status === 404) {
           return reply.status(404).send({ error: "Resource not found" });
         }
