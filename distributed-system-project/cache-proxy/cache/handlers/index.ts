@@ -12,19 +12,14 @@ export type BlobRequest = FastifyRequest<{
 }>;
 
 function getHeaders(request: FastifyRequest) {
-  // Create a plain object for headers instead of Headers object
   const headers: Record<string, string | string[]> = {};
 
-  // Process each header properly
   Object.entries(request.headers).forEach(([key, value]) => {
-    // Skip undefined values
     if (value === undefined) return;
 
-    // Use the original value without toString() to preserve arrays
     headers[toTitleCase(key)] = value;
   });
 
-  // Set host header
   headers["Host"] = request.host;
 
   return headers;
