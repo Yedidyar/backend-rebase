@@ -15,9 +15,17 @@ export class KeyValueLinkedList<T> {
 
   shift(): string | null {
     if(!this.head) return null
-    const keyOfHead = this.head.value[0];
-    this.head = this.head.next;
-    return keyOfHead; 
+    if(this.head === this.tail) {
+      const valueToShift = this.head.value[0];
+      this.head = null;
+      this.tail = null;
+      return valueToShift;
+    }
+    const keyOfDeletedHead = this.head.value[0];
+    const newHead = this.head.next!;
+    newHead.prev = null;
+    this.head = newHead;
+    return keyOfDeletedHead; 
   }
 
   add(value: [string, T]): KeyValueNode<T> {
@@ -36,15 +44,17 @@ export class KeyValueLinkedList<T> {
       return current;
     }
 
-    const current: KeyValueNode<T> = { prev: this.tail, value, next: null };
-    this.tail = current;
+    const newTail: KeyValueNode<T> = { prev: this.tail, value, next: null };
+    const oldTail = this.tail!;
+    oldTail.next = newTail;
+    this.tail = newTail;
     
-    return current;
+    return newTail;
   }
 
   remove(nodeToRemove: KeyValueNode<T>) {
     const isHead = nodeToRemove === this.head;
-    const isTail = nodeToRemove === this.head;
+    const isTail = nodeToRemove === this.tail;
     const isSingleNode = isHead && isTail;
     if (isSingleNode) {
       this.head = null
@@ -52,11 +62,14 @@ export class KeyValueLinkedList<T> {
       return
     }
     if (isHead) {
-      this.head = nodeToRemove.next
+      const newHead = this.head!.next!;
+      newHead.prev = null;
+      this.head = newHead;
       return
     }
     if (isTail) {
-      this.tail = nodeToRemove.prev
+      this.tail = this.tail!.prev!;
+      this.tail.next = null
       return
     }
     const parentOfNode = nodeToRemove.prev!;
