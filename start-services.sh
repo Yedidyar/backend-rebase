@@ -5,6 +5,7 @@ DEFAULT_REPLICAS=3
 LOAD_BALANCER_PORT=3000
 LOAD_BALANCER_ADDRESS="127.0.0.1:${LOAD_BALANCER_PORT}"
 BASE_BLOB_SERVER_PORT=3001
+CACHE_SERVICE_PORT=4242
 
 # Color codes for better output
 RED='\033[0;31m'
@@ -80,6 +81,11 @@ cleanup() {
         print_info "All blob servers stopped"
     fi
     
+    if [ ! -z "$CACHE_SERVICE_PID" ]; then
+        kill $CACHE_SERVICE_PID 2>/dev/null
+        print_info "Cache service stopped"
+    fi
+    
     exit 0
 }
 
@@ -147,9 +153,22 @@ for i in $(seq 1 $REPLICAS); do
     sleep 1
 done
 
+# Check if cache service port is available
+if ! check_port $CACHE_SERVICE_PORT; then
+    print_error "Port $CACHE_SERVICE_PORT is already in use. Please stop the service using this port."
+    cleanup
+    exit 1
+fi
+
+# Start cache service last
+print_info "Starting cache service on port $CACHE_SERVICE_PORT..."
+NODE_OPTIONS="" PORT=$CACHE_SERVICE_PORT LOAD_BALANCER_ADDRESS=$LOAD_BALANCER_ADDRESS pnpm run cache-proxy:dev &
+CACHE_SERVICE_PID=$!
+
 print_success "All services started successfully!"
 print_info "Load balancer running on: http://${LOAD_BALANCER_ADDRESS}"
 print_info "Blob servers running on ports: $(seq -s', ' $BASE_BLOB_SERVER_PORT $((BASE_BLOB_SERVER_PORT + REPLICAS - 1)))"
+print_info "Cache service running on: http://127.0.0.1:${CACHE_SERVICE_PORT}"
 print_info ""
 print_info "Press Ctrl+C to stop all services"
 
