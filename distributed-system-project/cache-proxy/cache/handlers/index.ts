@@ -12,12 +12,20 @@ export type BlobRequest = FastifyRequest<{
 }>;
 
 function getHeaders(request: FastifyRequest) {
-  const headerEntries = Object.entries(request.headers).map(
-    ([key, value]) =>
-      [toTitleCase(key), value?.toString() || ""] as [string, string],
-  );
-  const headers = new Headers(headerEntries);
-  headers.set("Host", request.host);
+  // Create a plain object for headers instead of Headers object
+  const headers: Record<string, string | string[]> = {};
+
+  // Process each header properly
+  Object.entries(request.headers).forEach(([key, value]) => {
+    // Skip undefined values
+    if (value === undefined) return;
+
+    // Use the original value without toString() to preserve arrays
+    headers[toTitleCase(key)] = value;
+  });
+
+  // Set host header
+  headers["Host"] = request.host;
 
   return headers;
 }
@@ -33,7 +41,7 @@ export async function getBlobHandler(
   try {
     const res = await axios.request({
       baseURL: `http://${config.LOAD_BALANCER_ADDRESS}/blobs/${request.params.id}`,
-      headers: getHeaders(request) as any,
+      headers: getHeaders(request),
       method: request.method,
       data: request.body,
     });
@@ -42,24 +50,26 @@ export async function getBlobHandler(
 
     return reply.header("X-Cache", "MISS").send(res.data);
   } catch (error) {
+    console.log(error);
+
     const axiosError = error as AxiosError;
 
     if (axiosError.response) {
       const status = axiosError.response.status;
 
       if (status === 404) {
-        return reply.status(404).send({ error: 'Resource not found' });
+        return reply.status(404).send({ error: "Resource not found" });
       }
 
       logger.error({
         blobId: request.params.id,
-        msg: 'Bad response from downstream service',
-        action: 'GET blob',
+        msg: "Bad response from downstream service",
+        action: "GET blob",
         cause: axiosError.cause,
       });
 
       return reply.status(status).send({
-        error: 'downstream error',
+        error: "downstream error",
         status,
         message: axiosError.response.data ?? axiosError.message,
       });
@@ -68,19 +78,23 @@ export async function getBlobHandler(
     if (axiosError.request) {
       logger.error({
         blobId: request.params.id,
-        msg: 'No response from downstream service',
-        action: 'GET blob',
+        msg: "No response from downstream service",
+        action: "GET blob",
         cause: axiosError.cause,
       });
-      return reply.status(502).send({ error: 'No response from downstream service' });
+      return reply
+        .status(502)
+        .send({ error: "No response from downstream service" });
     }
     logger.error({
       blobId: request.params.id,
-      msg: 'Internal server error',
-      action: 'GET blob',
+      msg: "Internal server error",
+      action: "GET blob",
       cause: axiosError.cause,
     });
-    return reply.status(500).send({ error: 'Internal server error', message: axiosError.message });
+    return reply
+      .status(500)
+      .send({ error: "Internal server error", message: axiosError.message });
   }
 }
 
@@ -91,7 +105,7 @@ export async function postBlobHandler(
   try {
     const res = await axios.request({
       baseURL: `http://${config.LOAD_BALANCER_ADDRESS}/blobs/${request.params.id}`,
-      headers: getHeaders(request) as any,
+      headers: getHeaders(request),
       method: request.method,
       data: request.body,
     });
@@ -104,9 +118,9 @@ export async function postBlobHandler(
 
     if (axiosError.response) {
       const status = axiosError.response.status;
-      
+
       return reply.status(status).send({
-        error: 'downstream error',
+        error: "downstream error",
         status,
         message: axiosError.response.data ?? axiosError.message,
       });
@@ -115,33 +129,36 @@ export async function postBlobHandler(
     if (axiosError.request) {
       logger.error({
         blobId: request.params.id,
-        msg: 'No response from downstream service',
-        action: 'POST blob',
+        msg: "No response from downstream service",
+        action: "POST blob",
         cause: axiosError.cause,
       });
-      return reply.status(502).send({ error: 'No response from downstream service' });
+      return reply
+        .status(502)
+        .send({ error: "No response from downstream service" });
     }
 
     logger.error({
       blobId: request.params.id,
-      msg: 'Internal server error',
-      action: 'POST blob',
+      msg: "Internal server error",
+      action: "POST blob",
       cause: axiosError.cause,
     });
 
-    return reply.status(500).send({ error: 'Internal server error', message: axiosError.message });
+    return reply
+      .status(500)
+      .send({ error: "Internal server error", message: axiosError.message });
   }
 }
-
 
 export async function deleteBlobHandler(
   request: BlobRequest,
   reply: FastifyReply,
 ) {
-  try{
+  try {
     await axios.request({
       baseURL: `http://${config.LOAD_BALANCER_ADDRESS}/blobs/${request.params.id}`,
-      headers: getHeaders(request) as any,
+      headers: getHeaders(request),
       method: request.method,
       data: request.body,
     });
@@ -154,9 +171,9 @@ export async function deleteBlobHandler(
 
     if (axiosError.response) {
       const status = axiosError.response.status;
-      
+
       return reply.status(status).send({
-        error: 'downstream error',
+        error: "downstream error",
         status,
         message: axiosError.response.data ?? axiosError.message,
       });
@@ -165,20 +182,24 @@ export async function deleteBlobHandler(
     if (axiosError.request) {
       logger.error({
         blobId: request.params.id,
-        msg: 'No response from downstream service',
-        action: 'DELETE blob',
+        msg: "No response from downstream service",
+        action: "DELETE blob",
         cause: axiosError.cause,
       });
-      return reply.status(502).send({ error: 'No response from downstream service' });
+      return reply
+        .status(502)
+        .send({ error: "No response from downstream service" });
     }
 
     logger.error({
       blobId: request.params.id,
-      msg: 'Internal server error',
-      action: 'DELETE blob',
+      msg: "Internal server error",
+      action: "DELETE blob",
       cause: axiosError.cause,
     });
 
-    return reply.status(500).send({ error: 'Internal server error', message: axiosError.message });
+    return reply
+      .status(500)
+      .send({ error: "Internal server error", message: axiosError.message });
   }
 }

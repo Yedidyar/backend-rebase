@@ -1,8 +1,4 @@
-import {
-  KeyValueLinkedList,
-  type KeyValueNode,
-} from "./linked-list/index.ts";
-
+import { KeyValueLinkedList, type KeyValueNode } from "./linked-list/index.ts";
 
 export class LRUCacheService {
   private cache: Map<string, KeyValueNode<ArrayBuffer>>;
@@ -21,6 +17,8 @@ export class LRUCacheService {
   }
 
   put(id: string, value: ArrayBuffer) {
+    console.log(this.cache);
+
     const node = this.linkedList.add([id, value]);
     this.cache.set(id, node);
     const isMaxCapacity = this.cache.size === this.capacity;

@@ -162,7 +162,7 @@ fi
 
 # Start cache service last
 print_info "Starting cache service on port $CACHE_SERVICE_PORT..."
-NODE_OPTIONS="" PORT=$CACHE_SERVICE_PORT LOAD_BALANCER_ADDRESS=$LOAD_BALANCER_ADDRESS pnpm run cache-proxy:dev &
+NODE_OPTIONS="" PORT=$CACHE_SERVICE_PORT LOAD_BALANCER_ADDRESS=$LOAD_BALANCER_ADDRESS pnpm run cache-proxy:prod &
 CACHE_SERVICE_PID=$!
 
 print_success "All services started successfully!"

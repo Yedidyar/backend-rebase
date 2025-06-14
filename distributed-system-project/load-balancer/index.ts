@@ -1,8 +1,27 @@
-import Fastify from "fastify";
+import Fastify, { type FastifyRequest } from "fastify";
 import axios from "axios";
 import { toTitleCase } from "../string-utils/to-title-case.ts";
 import registerPlugin, { NodeRegistrationService } from "./register/index.ts";
 import { config } from "./config.ts";
+
+function getHeaders(request: FastifyRequest) {
+  // Create a plain object for headers instead of Headers object
+  const headers: Record<string, string | string[]> = {};
+
+  // Process each header properly
+  Object.entries(request.headers).forEach(([key, value]) => {
+    // Skip undefined values
+    if (value === undefined) return;
+
+    // Use the original value without toString() to preserve arrays
+    headers[toTitleCase(key)] = value;
+  });
+
+  // Set host header
+  headers["Host"] = request.host;
+
+  return headers;
+}
 
 export class Readiness {
   private isReady = false;
@@ -38,18 +57,11 @@ fastify.all<{ Params: { id: string } }>(
     }
 
     try {
-      const headerEntries = Object.entries(request.headers).map(
-        ([key, value]) =>
-          [toTitleCase(key), value?.toString() || ""] as [string, string],
-      );
-      const headers = new Headers(headerEntries);
-      headers.set("Host", request.host);
-
       const node = NodeRegistrationService.getDownstreamNode(request.params.id);
 
       await axios.request({
         baseURL: `http://${node.destination.host}:${node.destination.port}/blobs/${request.params.id}`,
-        headers: headers as any,
+        headers: getHeaders(request),
         method: request.method,
         data: request.body,
       });
