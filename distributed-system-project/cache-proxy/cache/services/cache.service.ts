@@ -19,7 +19,7 @@ export class LRUCacheService {
   put(id: string, value: ArrayBuffer) {
     const node = this.linkedList.add([id, value]);
     this.cache.set(id, node);
-    const isMaxCapacity = this.cache.size === this.capacity;
+    const isMaxCapacity = this.cache.size === this.capacity + 1;
     if (isMaxCapacity) {
       const prevHeadKey = this.linkedList.shift();
       if (prevHeadKey) this.cache.delete(prevHeadKey);
