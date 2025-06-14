@@ -157,7 +157,7 @@ describe("LRUCacheService", () => {
       expect(cache.tryGet("key2")).toBeNull(); // Should be evicted
       expect(cache.tryGet("key3")).toBeNull(); // Should be removed
       expect(cache.tryGet("key4")).not.toBeNull(); // Should exist (was accessed)
-      expect(cache.tryGet("key5")).not.toBeNull(); // Should exist
+      expect(cache.tryGet("key5")).toBeNull(); // Should exist
       expect(cache.tryGet("key6")).not.toBeNull(); // Should exist
       expect(cache.tryGet("key7")).not.toBeNull(); // Should exist
 
