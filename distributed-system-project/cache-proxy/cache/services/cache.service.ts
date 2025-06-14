@@ -1,7 +1,10 @@
-import { KeyValueLinkedList, type KeyValueNode } from "../../../linked-list/index.ts";
+import {
+  KeyValueLinkedList,
+  type KeyValueNode,
+} from "../../../linked-list/index.ts";
 
-export class CacheService {
-  private cache: Map<string, KeyValueNode<ArrayBuffer>>
+export class LRUCacheService {
+  private cache: Map<string, KeyValueNode<ArrayBuffer>>;
   private capacity: number;
   private linkedList: KeyValueLinkedList<ArrayBuffer>;
 
@@ -17,12 +20,12 @@ export class CacheService {
   }
 
   put(id: string, value: ArrayBuffer) {
-    const node = this.linkedList.add([id, value])
+    const node = this.linkedList.add([id, value]);
     this.cache.set(id, node);
-    const isMaxCapacity = this.cache.size === this.capacity
-    if(isMaxCapacity){
+    const isMaxCapacity = this.cache.size === this.capacity;
+    if (isMaxCapacity) {
       const prevHeadKey = this.linkedList.shift();
-      if(prevHeadKey) this.cache.delete(prevHeadKey);
+      if (prevHeadKey) this.cache.delete(prevHeadKey);
     }
   }
 
@@ -31,19 +34,17 @@ export class CacheService {
     this.linkedList.add(node.value);
   }
 
-
   tryGet(id: string): KeyValueNode<ArrayBuffer> | null {
     const lastNodeUsed = this.cache.get(id);
-    if(!lastNodeUsed) return null
-    this.moveNodeToTopOfList(lastNodeUsed)
+    if (!lastNodeUsed) return null;
+    this.moveNodeToTopOfList(lastNodeUsed);
     return lastNodeUsed;
   }
 
   remove(id: string) {
-    const nodeToRemove = this.cache.get(id)
-    if(!nodeToRemove) return
+    const nodeToRemove = this.cache.get(id);
+    if (!nodeToRemove) return;
     this.linkedList.remove(nodeToRemove);
     this.cache.delete(id);
   }
-
 }
