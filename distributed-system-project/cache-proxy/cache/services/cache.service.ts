@@ -1,7 +1,8 @@
 import {
   KeyValueLinkedList,
   type KeyValueNode,
-} from "../../../linked-list/index.ts";
+} from "./linked-list/index.ts";
+
 
 export class LRUCacheService {
   private cache: Map<string, KeyValueNode<ArrayBuffer>>;
