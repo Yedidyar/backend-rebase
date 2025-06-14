@@ -2,18 +2,18 @@ import * as crypto from "crypto";
 
 interface KeyValueNode<T> {
   value: [string, T];
-  next: KeyValueNode<T> | null;
+  next: KeyValueNode<T> | null | undefined;
 }
 
 const KEY_INDEX = 0;
 const VALUE_INDEX = 1;
 
 class KeyValueLinkedList<T> {
-  private head: KeyValueNode<T> | null;
+  private head: KeyValueNode<T> | null | undefined;
 
   constructor() {}
   add(value: [string, T]) {
-    let curr: KeyValueNode<T> | null = this.head;
+    let curr: KeyValueNode<T> | null | undefined = this.head;
     while (curr) {
       if (curr.value[KEY_INDEX] === value[KEY_INDEX]) {
         curr.value = value;
@@ -29,7 +29,7 @@ class KeyValueLinkedList<T> {
   }
 
   get(key: string) {
-    let curr: KeyValueNode<T> | null = this.head;
+    let curr: KeyValueNode<T> | null | undefined = this.head;
     while (curr) {
       if (curr.value[KEY_INDEX] === key) {
         return curr.value;
@@ -40,8 +40,8 @@ class KeyValueLinkedList<T> {
   }
 
   remove(key: string) {
-    let curr: KeyValueNode<T> | null = this.head;
-    let prev: KeyValueNode<T> | null = null;
+    let curr: KeyValueNode<T> | null | undefined = this.head;
+    let prev: KeyValueNode<T> | null | undefined = null;
 
     while (curr) {
       if (curr.value[KEY_INDEX] === key) {
@@ -60,7 +60,7 @@ class KeyValueLinkedList<T> {
 
   // for debugging
   *[Symbol.iterator]() {
-    let curr: KeyValueNode<T> | null = this.head;
+    let curr: KeyValueNode<T> | null | undefined = this.head;
     while (curr) {
       yield curr.value;
       curr = curr.next;
@@ -82,13 +82,13 @@ export class HashMap<T> {
   }
 
   put(key: string, value: T) {
-    this.buckets[createHash(key) % this.buckets.length].add([key, value]);
+    this.buckets?.[createHash(key) % this.buckets.length]?.add([key, value]);
   }
 
   get(key: string): T {
     const bucket = this.buckets[createHash(key) % this.buckets.length];
 
-    const entry = bucket.get(key);
+    const entry = bucket?.get(key);
     if (entry) {
       return entry[VALUE_INDEX];
     }
@@ -98,7 +98,7 @@ export class HashMap<T> {
 
   remove(key: string) {
     const bucket = this.buckets[createHash(key) % this.buckets.length];
-    const entry = bucket.remove(key);
+    const entry = bucket?.remove(key);
 
     if (entry) {
       return entry;
