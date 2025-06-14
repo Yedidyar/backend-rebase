@@ -12,4 +12,4 @@ COPY . .
 
 EXPOSE 3000
 
-CMD ["node", "--env-file=.env", "distributed-system-project/load-balancer/index.ts"] 
+CMD ["node", "--env-file=.env", "distributed-system-project/cache-proxy/index.ts"] 
