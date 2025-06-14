@@ -28,7 +28,9 @@ export class LRUCacheService {
 
   private moveNodeToTopOfList(node: KeyValueNode<ArrayBuffer>): void {
     this.linkedList.remove(node);
-    this.linkedList.add(node.value);
+    this.cache.delete(node.value[0]);
+    const newNode = this.linkedList.add(node.value);
+    this.cache.set(node.value[0], newNode);
   }
 
   tryGet(id: string): KeyValueNode<ArrayBuffer> | null {

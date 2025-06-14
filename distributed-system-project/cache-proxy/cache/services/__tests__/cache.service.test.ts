@@ -27,16 +27,14 @@ describe("LRUCacheService", () => {
         head: cache.linkedList.getHead(),
         tail: cache.linkedList.getTail(),
         value: "key1",
-      }
-      );
+      });
 
       cache.put("key2", new ArrayBuffer(8));
       console.log({
         head: cache.linkedList.getHead(),
         tail: cache.linkedList.getTail(),
         value: "key2",
-      }
-      );
+      });
 
       cache.put("key3", new ArrayBuffer(8));
 
@@ -125,6 +123,50 @@ describe("LRUCacheService", () => {
       expect(cache.tryGet("key2")).toBeNull();
       expect(cache.tryGet("key3")).not.toBeNull();
       expect(cache.tryGet("key4")).not.toBeNull();
+    });
+  });
+
+  describe("Complex operations", () => {
+    it("should handle complex sequence of operations correctly", () => {
+      // Fill cache with initial values
+      cache.put("key1", new ArrayBuffer(8));
+      cache.put("key2", new ArrayBuffer(8));
+      cache.put("key3", new ArrayBuffer(8));
+
+      // Access key1, making it most recently used
+      cache.tryGet("key1");
+
+      // Add new key, should evict key2 (least recently used)
+      cache.put("key4", new ArrayBuffer(8));
+
+      // Remove key3
+      cache.remove("key3");
+
+      // Add two more keys
+      cache.put("key5", new ArrayBuffer(8));
+      cache.put("key6", new ArrayBuffer(8));
+
+      // Access key4, making it most recently used
+      cache.tryGet("key4");
+
+      // Add one more key, should evict key1 (now least recently used)
+      cache.put("key7", new ArrayBuffer(8));
+
+      // Verify final state
+      expect(cache.tryGet("key1")).toBeNull(); // Should be evicted
+      expect(cache.tryGet("key2")).toBeNull(); // Should be evicted
+      expect(cache.tryGet("key3")).toBeNull(); // Should be removed
+      expect(cache.tryGet("key4")).not.toBeNull(); // Should exist (was accessed)
+      expect(cache.tryGet("key5")).not.toBeNull(); // Should exist
+      expect(cache.tryGet("key6")).not.toBeNull(); // Should exist
+      expect(cache.tryGet("key7")).not.toBeNull(); // Should exist
+
+      // Clear cache and verify
+      cache.clear();
+      expect(cache.tryGet("key4")).toBeNull();
+      expect(cache.tryGet("key5")).toBeNull();
+      expect(cache.tryGet("key6")).toBeNull();
+      expect(cache.tryGet("key7")).toBeNull();
     });
   });
 });
