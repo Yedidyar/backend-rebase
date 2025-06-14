@@ -112,7 +112,7 @@ export async function postBlobHandler(
 
     cache.put(request.params.id, res.data);
 
-    return reply.status(201);
+    return reply.status(201).send();
   } catch (error) {
     const axiosError = error as AxiosError;
 

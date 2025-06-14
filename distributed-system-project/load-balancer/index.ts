@@ -62,14 +62,14 @@ fastify.all<{ Params: { id: string } }>(
     try {
       const node = NodeRegistrationService.getDownstreamNode(request.params.id);
 
-      await axios.request({
+      const response = await axios.request({
         baseURL: `http://${node.destination.host}:${node.destination.port}/blobs/${request.params.id}`,
         headers: getHeaders(request),
         method: request.method,
         data: request.body,
       });
 
-      return reply.status(200).send();
+      return reply.status(response.status).send();
     } catch (error) {
       const axiosError = error as AxiosError;
 
