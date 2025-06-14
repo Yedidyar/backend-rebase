@@ -2,8 +2,10 @@ import Fastify from "fastify";
 import blobPlugin from "./blob/index.ts";
 import { mkdirSync } from "node:fs";
 import { config } from "./config.ts";
-import { logger } from "./../logger/index.ts";
 import type { AddressInfo } from "node:net";
+import { createLogger } from "../logger/index.ts";
+
+export const logger = createLogger("http-blob-server");
 
 const fastify = Fastify();
 

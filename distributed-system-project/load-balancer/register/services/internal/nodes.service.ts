@@ -1,7 +1,6 @@
 import { createHash } from "node:crypto";
 import type { RegisteredNode } from "../../types.ts";
 import { readiness } from "../../../index.ts";
-import { logger } from "../../../../logger/index.ts";
 
 export class RegistrationError extends Error {
   constructor(message?: string) {

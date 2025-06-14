@@ -5,7 +5,7 @@ import { getHeaders } from "../utils/headers.ts";
 import { isValidId } from "../utils/validation.ts";
 import { BlobService, SaveBlobError } from "../services/blob.service.ts";
 import type { BlobRequest } from "../types.ts";
-import { logger } from "../../../logger/index.ts";
+import { logger } from "../../index.ts";
 
 export async function postBlobHandler(
   request: BlobRequest,
