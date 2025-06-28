@@ -5,6 +5,6 @@ export async function getNodes(
   request: FastifyRequest,
   reply: FastifyReply,
 ): Promise<FastifyReply> {
-  const nodes = await NodeRegistrationService.getAll();
+  const nodes = NodeRegistrationService.getAll();
   return reply.code(200).send(nodes);
 }

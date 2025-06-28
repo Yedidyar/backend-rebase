@@ -1,7 +1,7 @@
 import type { FastifyReply, FastifyInstance } from "fastify";
 import { BlobService, DeleteBlobError } from "../services/blob.service.ts";
 import type { BlobRequest } from "../types.ts";
-import { logger } from "../../../logger/index.ts";
+import { logger } from "../../index.ts";
 
 export async function deleteBlobHandler(
   request: BlobRequest,
