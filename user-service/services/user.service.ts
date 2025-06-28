@@ -9,15 +9,7 @@ export class UserService {
     return this.userRepository.getUser(id);
   }
 
-  createOrUpdateUser(user: UserDto) {
-    return this.userRepository.upsert(user);
-  }
-
-  deleteUser(id: string) {
-    return this.userRepository.delete(id);
-  }
-
-  async saveUser(email: string, fullName: string) {
+  async createOrUpdateUser(email: string, fullName: string) {
     const joinedAt = new Date();
     const userToSave: UserDto = {
       id: uuidv7(),
@@ -26,8 +18,7 @@ export class UserService {
       joined_at: joinedAt,
     };
     try {
-      const userRepository = new UserRepository();
-      const user = await userRepository.upsert(userToSave);
+      const user = await this.userRepository.upsert(userToSave);
       return user;
     } catch (err) {
       logger.error({

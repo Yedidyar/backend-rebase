@@ -1,11 +1,18 @@
 import Fastify from "fastify";
 import { config } from "./config.ts";
 import { createLogger } from "./logger/index.ts";
+import { UserRepository } from "./repositories/users.ts";
+import { userRoutes } from "./handlers/index.ts";
 
 export const logger = createLogger("user-service");
 
-
 const fastify = Fastify();
+
+declare module "fastify" {
+  interface FastifyInstance {
+    userRepository: UserRepository;
+  }
+}
 
 /**
  * Run the server!
@@ -13,7 +20,9 @@ const fastify = Fastify();
 
 const start = async () => {
   try {
+    fastify.decorate("userRepository", new UserRepository());
 
+    await fastify.register(userRoutes, { prefix: "/users" });
 
     await fastify.listen({ port: config.PORT, host: "0.0.0.0" });
     logger.info(`Server listening on port ${config.PORT}`);

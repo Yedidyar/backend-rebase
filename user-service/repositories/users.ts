@@ -77,10 +77,10 @@ export class UserRepository {
     return { full_name, email, joined_at };
   }
 
-  async getUser(id: string): Promise<UserDto | null> {
-    const getUserQuery = `SELECT * FROM users WHERE id = $1`;
+  async getUser(email: string): Promise<UserDto | null> {
+    const getUserQuery = `SELECT email, full_name, joined_at FROM users WHERE email = $1`;
     await using session = await this.#getSession();
-    const { rows } = await session.session.query(getUserQuery, [id]);
+    const { rows } = await session.session.query(getUserQuery, [email]);
     return rows[0] ?? null;
   }
 }
