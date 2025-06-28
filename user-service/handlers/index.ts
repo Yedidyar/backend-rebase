@@ -15,14 +15,23 @@ export async function getUserHandler(
   request: GetUserRequest,
   reply: FastifyReply,
 ) {
-  const { email } = request.params;
-  const user = await request.server.userService.getUser(email);
+  try {
+    const { email } = request.params;
+    const user = await request.server.userService.getUser(email);
 
-  if (!user) {
-    return reply.status(404).send({ error: "User not found" });
+    if (!user) {
+      return reply.status(404).send({ error: "User not found" });
+    }
+
+    return reply.send(user);
+  } catch (error) {
+    logger.error({
+      action: "GET USER",
+      message: `Couldn't get user: ${(error as Error).message}`,
+      cause: (error as Error).cause,
+    });
+    return reply.status(500).send("Couldn't get user");
   }
-
-  return reply.send(user);
 }
 
 export async function saveOrCreateUserHandler(
