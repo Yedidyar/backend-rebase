@@ -1,11 +1,20 @@
 import Fastify from "fastify";
 import { config } from "./config.ts";
 import { createLogger } from "./logger/index.ts";
-import pg from "pg"
+import { Client } from "pg";
 
 export const logger = createLogger("user-service");
 
 const fastify = Fastify();
+
+const client = new Client({
+  connectionString: config.CONNECTION_STRING,
+});
+await client.connect();
+
+const res = await client.query("SELECT $1::text as message", ["Hello world!"]);
+console.log(res.rows[0].message); // Hello world!
+await client.end();
 
 /**
  * Run the server!
