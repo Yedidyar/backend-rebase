@@ -15,6 +15,8 @@ export class UserService {
 
   deleteUser(id: string) {
     return this.userRepository.delete(id);
+  }
+
   async saveUser(email: string, fullName: string) {
     const joinedAt = new Date();
     const userToSave: UserDto = {
