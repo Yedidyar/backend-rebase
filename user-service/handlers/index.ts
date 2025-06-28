@@ -8,7 +8,7 @@ export type GetUserRequest = FastifyRequest<{
 }>;
 
 export type CreateOrUpdateUserRequest = FastifyRequest<{
-  Params: { email: string; fullName: string };
+  Body: { email: string; fullName: string };
 }>;
 
 export async function getUserHandler(
@@ -30,7 +30,7 @@ export async function saveOrCreateUserHandler(
   reply: FastifyReply,
 ) {
   try {
-    const { email, fullName } = request.params;
+    const { email, fullName } = request.body;
     const user = await request.server.userService.createOrUpdateUser(
       email,
       fullName,
@@ -40,7 +40,7 @@ export async function saveOrCreateUserHandler(
     if (err instanceof UpsertError) {
       logger.error({
         action: upsertUserAction,
-        message: "Couldn't save user",
+        message: `Couldn't save user: ${err.message}`,
         cause: (err as Error)?.cause,
       });
     } else {
@@ -56,8 +56,8 @@ export async function saveOrCreateUserHandler(
 
 export async function userRoutes(fastify: FastifyInstance, options: object) {
   fastify.get<{ Params: { email: string } }>("/:email", getUserHandler);
-  fastify.post<{ Params: { email: string; fullName: string } }>(
-    "/:email",
+  fastify.post<{ Body: { email: string; fullName: string } }>(
+    "/",
     saveOrCreateUserHandler,
   );
 }
