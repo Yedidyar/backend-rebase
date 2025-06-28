@@ -20,7 +20,6 @@ export class UserRepository {
 
   async #getSession() {
     const session = await this.#pool.connect();
-    session.connect();
     return {
       session,
       [Symbol.asyncDispose]: async () => {
