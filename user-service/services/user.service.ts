@@ -1,7 +1,15 @@
 import { uuidv7 } from "uuidv7";
 import type { UserDto } from "../repositories/users.ts";
-import { UserRepository, upserUserAction } from "../repositories/users.ts";
+import { UserRepository, upsertUserAction } from "../repositories/users.ts";
 import { logger } from "../index.ts";
+
+export class UpsertError extends Error {
+  action: string;
+  constructor() {
+    super();
+    this.action = upsertUserAction;
+  }
+}
 
 export class UserService {
   constructor(private readonly userRepository: UserRepository) {}
@@ -21,11 +29,7 @@ export class UserService {
       const user = await this.userRepository.upsert(userToSave);
       return user;
     } catch (err) {
-      logger.error({
-        action: upserUserAction,
-        message: "Couldn't save user",
-        cause: (err as Error)?.cause,
-      });
+      throw new UpsertError();
     }
   }
 }

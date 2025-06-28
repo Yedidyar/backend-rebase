@@ -10,7 +10,7 @@ export interface UserDto {
   deleted_at?: Date | null;
 }
 
-export const upserUserAction = "UPSERT USER";
+export const upsertUserAction = "UPSERT USER";
 
 export class UserRepository {
   #pool: Pool;
@@ -57,19 +57,19 @@ export class UserRepository {
 
     if (is_insert) {
       logger.info({
-        action: upserUserAction,
+        action: upsertUserAction,
         userId: id,
         message: "new user was created",
       });
     } else if (already_exists) {
       logger.info({
-        action: upserUserAction,
+        action: upsertUserAction,
         userId: id,
         message: "user is already active",
       });
     } else {
       logger.info({
-        action: upserUserAction,
+        action: upsertUserAction,
         userId: id,
         message: "user was reactivated",
       });
