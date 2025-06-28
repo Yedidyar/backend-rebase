@@ -1,7 +1,6 @@
 import { uuidv7 } from "uuidv7";
 import type { UserDto } from "../repositories/users.ts";
 import { UserRepository, upsertUserAction } from "../repositories/users.ts";
-import { logger } from "../index.ts";
 
 export class UpsertError extends Error {
   action: string;

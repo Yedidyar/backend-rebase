@@ -1,4 +1,7 @@
 import type { FastifyReply, FastifyRequest, FastifyInstance } from "fastify";
+import { logger } from "../index.ts";
+import { upsertUserAction } from "../repositories/users.ts";
+import { UpsertError } from "../services/user.service.ts";
 
 export type GetUserRequest = FastifyRequest<{
   Params: { email: string };
@@ -26,13 +29,29 @@ export async function saveOrCreateUserHandler(
   request: CreateOrUpdateUserRequest,
   reply: FastifyReply,
 ) {
-  const { email, fullName } = request.params;
-  const user = await request.server.userService.createOrUpdateUser(
-    email,
-    fullName,
-  );
-
-  return reply.status(401).send(user);
+  try {
+    const { email, fullName } = request.params;
+    const user = await request.server.userService.createOrUpdateUser(
+      email,
+      fullName,
+    );
+    return reply.status(201).send(user);
+  } catch (err) {
+    if (err instanceof UpsertError) {
+      logger.error({
+        action: upsertUserAction,
+        message: "Couldn't save user",
+        cause: (err as Error)?.cause,
+      });
+    } else {
+      logger.error({
+        action: upsertUserAction,
+        message: (err as Error)?.message,
+        cause: (err as Error)?.cause,
+      });
+    }
+    return reply.status(500).send("Couldn't save user");
+  }
 }
 
 export async function userRoutes(fastify: FastifyInstance, options: object) {
