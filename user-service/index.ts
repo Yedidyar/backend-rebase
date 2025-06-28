@@ -3,6 +3,7 @@ import { config } from "./config.ts";
 import { createLogger } from "./logger/index.ts";
 import { UserRepository } from "./repositories/users.ts";
 import { userRoutes } from "./handlers/index.ts";
+import { UserService } from "./services/user.service.ts";
 
 export const logger = createLogger("user-service");
 
@@ -11,6 +12,7 @@ const fastify = Fastify();
 declare module "fastify" {
   interface FastifyInstance {
     userRepository: UserRepository;
+    userService: UserService;
   }
 }
 
@@ -21,6 +23,7 @@ declare module "fastify" {
 const start = async () => {
   try {
     fastify.decorate("userRepository", new UserRepository());
+    fastify.decorate("userService", new UserService(fastify.userRepository));
 
     await fastify.register(userRoutes, { prefix: "/users" });
 
