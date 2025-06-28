@@ -1,6 +1,8 @@
 
 import { Pool } from "pg";
 import { logger } from '../index.ts';
+import { pool } from './pool.ts'
+
 
 export interface UserDto {
     id: string;
@@ -12,7 +14,7 @@ export interface UserDto {
 
 export class UserRepository {
     #pool: Pool;
-    constructor(pool: Pool) {
+    constructor() {
         this.#pool = pool;
     }
 
