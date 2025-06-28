@@ -12,8 +12,8 @@ export class UpsertError extends Error {
 
 export class UserService {
   constructor(private readonly userRepository: UserRepository) {}
-  getUser(id: string) {
-    return this.userRepository.getUser(id);
+  getUser(email: string) {
+    return this.userRepository.getUser(email);
   }
 
   async createOrUpdateUser(email: string, fullName: string) {

@@ -56,4 +56,8 @@ export async function saveOrCreateUserHandler(
 
 export async function userRoutes(fastify: FastifyInstance, options: object) {
   fastify.get<{ Params: { email: string } }>("/:email", getUserHandler);
+  fastify.post<{ Params: { email: string; fullName: string } }>(
+    "/:email",
+    saveOrCreateUserHandler,
+  );
 }
