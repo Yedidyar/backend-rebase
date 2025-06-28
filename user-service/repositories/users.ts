@@ -10,6 +10,8 @@ export interface UserDto {
   deleted_at?: Date | null;
 }
 
+export const upserUserAction = "UPSERT USER";
+
 export class UserRepository {
   #pool: Pool;
   constructor() {
@@ -28,7 +30,6 @@ export class UserRepository {
   }
 
   async upsert(user: UserDto) {
-    const action = "UPSERT USER";
     const upsertQuery = `
         INSERT INTO users (id, email, full_name, joined_at, deleted_at)
         VALUES ($1, $2, $3, $4, $5)
@@ -37,6 +38,7 @@ export class UserRepository {
           email = EXCLUDED.email,
           full_name = EXCLUDED.full_name,
           deleted_at = EXCLUDED.deleted_at
+        WHERE users.email = EXCLUDED.email AND users.deleted_at IS NULL
         RETURNING id, name, email, full_name, joined_at, 
             (users.deleted_at is NULL) as already_exists, 
             (xmax = 0) as is_insert;
@@ -54,11 +56,23 @@ export class UserRepository {
       rows[0];
 
     if (is_insert) {
-      logger.info({ action, userId: id, message: "new user was created" });
+      logger.info({
+        action: upserUserAction,
+        userId: id,
+        message: "new user was created",
+      });
     } else if (already_exists) {
-      logger.info({ action, userId: id, message: "user is already active" });
+      logger.info({
+        action: upserUserAction,
+        userId: id,
+        message: "user is already active",
+      });
     } else {
-      logger.info({ action, userId: id, message: "user was reactivated" });
+      logger.info({
+        action: upserUserAction,
+        userId: id,
+        message: "user was reactivated",
+      });
     }
     return { full_name, email, joined_at };
   }
