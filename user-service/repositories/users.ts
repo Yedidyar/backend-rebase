@@ -10,8 +10,6 @@ export interface UserDto {
     deleted_at?: Date | null;
 }
 
-class 
-
 export class UserRepository {
     #pool: Pool;
     constructor(pool: Pool) {
@@ -30,8 +28,8 @@ export class UserRepository {
     }
 
     async upsert(user: UserDto) {
-        try {
-            const upsertQuery = `
+        const action = 'UPSERT USER';
+        const upsertQuery = `
         INSERT INTO users (id, email, full_name, joined_at, deleted_at)
         VALUES ($1, $2, $3, $4, $5)
         ON CONFLICT (email) 
@@ -43,28 +41,24 @@ export class UserRepository {
             (users.deleted_at is NULL) as already_exists, 
             (xmax = 0) as is_insert;
       `;
-            await using session = await this.#getSession();
-            const { rows } = await session.session.query(upsertQuery, [
-                user.id,
-                user.email,
-                user.full_name,
-                user.joined_at,
-                null,
-            ]);
+        await using session = await this.#getSession();
+        const { rows } = await session.session.query(upsertQuery, [
+            user.id,
+            user.email,
+            user.full_name,
+            user.joined_at,
+            null,
+        ]);
 
-            const { id, full_name, email, joined_at, already_exists, is_insert } = rows[0];
-            const action = 'UPSERT USER';
+        const { id, full_name, email, joined_at, already_exists, is_insert } = rows[0];
 
-            if (is_insert) {
-                logger.info({ action, userId: id, message: 'new user was created' })
-            } else if (already_exists) {
-                logger.info({ action, userId: id, message: 'user is already active' })
-            } else {
-                logger.info({ action, userId: id, message: 'user was reactivated' })
-            }
-            return { full_name, email, joined_at }
-        } catch (err) {
-
+        if (is_insert) {
+            logger.info({ action, userId: id, message: 'new user was created' })
+        } else if (already_exists) {
+            logger.info({ action, userId: id, message: 'user is already active' })
+        } else {
+            logger.info({ action, userId: id, message: 'user was reactivated' })
         }
+        return { full_name, email, joined_at }
     }
 }
