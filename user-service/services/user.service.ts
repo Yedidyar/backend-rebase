@@ -1,15 +1,16 @@
+import type { UserDto, UserRepository } from "../repositories/users.ts";
+
 export class UserService {
-  tryGet(id: string): KeyValueNode<ArrayBuffer> | null {
-    const lastNodeUsed = this.cache.get(id);
-    if (!lastNodeUsed) return null;
-    this.moveNodeToTopOfList(lastNodeUsed);
-    return lastNodeUsed;
+  constructor(private readonly userRepository: UserRepository) {}
+  getUser(id: string) {
+    return this.userRepository.getUser(id);
   }
 
-  remove(id: string) {
-    const nodeToRemove = this.cache.get(id);
-    if (!nodeToRemove) return;
-    this.linkedList.remove(nodeToRemove);
-    this.cache.delete(id);
+  createOrUpdateUser(user: UserDto) {
+    return this.userRepository.upsert(user);
+  }
+
+  deleteUser(id: string) {
+    return this.userRepository.delete(id);
   }
 }
