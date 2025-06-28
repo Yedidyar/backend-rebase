@@ -82,4 +82,22 @@ export class UserRepository {
     const { rows } = await session.session.query(getUserQuery, [email]);
     return rows[0] ?? null;
   }
+
+  async delete(email: string): Promise<void> {
+    const action = "SOFT DELETE USER";
+    const deleteQuery = `UPDATE users SET deleted_at = NOW() WHERE email = $1 AND deleted_at IS NULL`;
+
+    await using session = await this.#getSession();
+    const { rowCount } = await session.session.query(deleteQuery, [email]);
+
+    if (rowCount && rowCount > 0) {
+      logger.info({ action, email, message: "The user was soft-deleted" });
+    } else {
+      logger.info({
+        action,
+        email,
+        message: "The user doesn't exist or is currently inactive",
+      });
+    }
+  }
 }

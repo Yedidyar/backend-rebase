@@ -11,6 +11,10 @@ export type CreateOrUpdateUserRequest = FastifyRequest<{
   Body: { email: string; fullName: string };
 }>;
 
+export type DeleteUserRequest = FastifyRequest<{
+  Params: { email: string };
+}>;
+
 export async function getUserHandler(
   request: GetUserRequest,
   reply: FastifyReply,
@@ -63,10 +67,24 @@ export async function saveOrCreateUserHandler(
   }
 }
 
+export async function deleteUserHandler(
+  request: DeleteUserRequest,
+  reply: FastifyReply,
+) {
+  try {
+    const { email } = request.params;
+    await request.server.userRepository.delete(email);
+    return reply.status(200).send();
+  } catch (error) {
+    return reply.status(500).send("Couldn't delete user");
+  }
+}
+
 export async function userRoutes(fastify: FastifyInstance, options: object) {
   fastify.get<{ Params: { email: string } }>("/:email", getUserHandler);
   fastify.post<{ Body: { email: string; fullName: string } }>(
     "/",
     saveOrCreateUserHandler,
   );
+  fastify.delete<{ Params: { email: string } }>("/:email", deleteUserHandler);
 }
