@@ -4,8 +4,8 @@ import { UserRepository, upsertUserAction } from "../repositories/users.ts";
 
 export class UpsertError extends Error {
   action: string;
-  constructor() {
-    super();
+  constructor(err: Error) {
+    super(err.message);
     this.action = upsertUserAction;
   }
 }
@@ -28,7 +28,7 @@ export class UserService {
       const user = await this.userRepository.upsert(userToSave);
       return user;
     } catch (err) {
-      throw new UpsertError();
+      throw new UpsertError(err as Error);
     }
   }
 }

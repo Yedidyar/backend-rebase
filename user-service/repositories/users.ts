@@ -38,7 +38,7 @@ export class UserRepository {
           full_name = EXCLUDED.full_name,
           deleted_at = EXCLUDED.deleted_at
         WHERE users.email = EXCLUDED.email AND users.deleted_at IS NULL
-        RETURNING id, name, email, full_name, joined_at, 
+        RETURNING id, email, full_name, joined_at, 
             (users.deleted_at is NULL) as already_exists, 
             (xmax = 0) as is_insert;
       `;
