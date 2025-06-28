@@ -27,6 +27,7 @@
     "mime-types": "^3.0.1",
     "pg": "^8.16.3",
     "prettier": "^3.5.3",
+    "uuidv7": "^1.0.2",
     "winston": "^3.17.0",
     "winston-logzio": "^5.2.0"
   },

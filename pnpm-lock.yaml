@@ -26,6 +26,9 @@ importers:
       prettier:
         specifier: ^3.5.3
         version: 3.5.3
+      uuidv7:
+        specifier: ^1.0.2
+        version: 1.0.2
       winston:
         specifier: ^3.17.0
         version: 3.17.0
@@ -1004,6 +1007,10 @@ packages:
   util-deprecate@1.0.2:
     resolution: {integrity: sha512-EPD5q1uXyFxJpCrLnCc1nHnq3gOa6DZBocAIiI2TaSCA7VCJ1UJDMagCzIkXNsUYfD1daK//LTEQ8xiIbrHtcw==}
 
+  uuidv7@1.0.2:
+    resolution: {integrity: sha512-8JQkH4ooXnm1JCIhqTMbtmdnYEn6oKukBxHn1Ic9878jMkL7daTI7anTExfY18VRCX7tcdn5quzvCb6EWrR8PA==}
+    hasBin: true
+
   vite-node@3.1.3:
     resolution: {integrity: sha512-uHV4plJ2IxCl4u1up1FQRrqclylKAogbtBfOTwcuJ28xFi+89PZ57BRh+naIRvH70HPwxy5QHYzg1OrEaC7AbA==}
     engines: {node: ^18.0.0 || ^20.0.0 || >=22.0.0}
@@ -1952,6 +1959,8 @@ snapshots:
   undici-types@6.21.0: {}
 
   util-deprecate@1.0.2: {}
+
+  uuidv7@1.0.2: {}
 
   vite-node@3.1.3(@types/node@22.15.12)(tsx@4.19.4):
     dependencies:
