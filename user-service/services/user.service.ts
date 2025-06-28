@@ -1,4 +1,7 @@
-import type { UserDto, UserRepository } from "../repositories/users.ts";
+import { uuidv7 } from "uuidv7";
+import type { UserDto } from "../repositories/users.ts";
+import { UserRepository, upserUserAction } from "../repositories/users.ts";
+import { logger } from "../index.ts";
 
 export class UserService {
   constructor(private readonly userRepository: UserRepository) {}
@@ -12,5 +15,24 @@ export class UserService {
 
   deleteUser(id: string) {
     return this.userRepository.delete(id);
+  async saveUser(email: string, fullName: string) {
+    const joinedAt = new Date();
+    const userToSave: UserDto = {
+      id: uuidv7(),
+      full_name: fullName,
+      email,
+      joined_at: joinedAt,
+    };
+    try {
+      const userRepository = new UserRepository();
+      const user = await userRepository.upsert(userToSave);
+      return user;
+    } catch (err) {
+      logger.error({
+        action: upserUserAction,
+        message: "Couldn't save user",
+        cause: (err as Error)?.cause,
+      });
+    }
   }
 }
