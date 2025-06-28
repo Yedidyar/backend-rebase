@@ -9,7 +9,7 @@ export async function getUserHandler(
   reply: FastifyReply,
 ) {
   const { email } = request.params;
-  const user = await request.server.userRepository.getUser(email);
+  const user = await request.server.userService.getUser(email);
 
   if (!user) {
     return reply.status(404).send({ error: "User not found" });
