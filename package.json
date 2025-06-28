@@ -6,6 +6,8 @@
   "type": "module",
   "scripts": {
     "test": "vitest",
+    "user-service:dev": "node --env-file=.env --watch user-service/index.ts",
+    "user-service:prod": "node --env-file=.env user-service/index.ts",
     "http-blob-server:dev": "node --env-file=.env --watch distributed-system-project/http-blob-server/index.ts",
     "http-blob-server:prod": "node --env-file=.env distributed-system-project/http-blob-server/index.ts",
     "load-balancer:dev": "node --env-file=.env --watch distributed-system-project/load-balancer/index.ts",
