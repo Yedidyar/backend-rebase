@@ -14,8 +14,8 @@ export const upsertUserAction = "UPSERT USER";
 
 export class UserRepository {
   #pool: Pool;
-  constructor() {
-    this.#pool = pool;
+  constructor(injectedPool?: Pool) {
+    this.#pool = injectedPool ?? pool;
   }
 
   async #getSession() {

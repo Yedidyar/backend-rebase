@@ -23,18 +23,8 @@ describe("LRUCacheService", () => {
     it("should evict least recently used item when capacity is reached", () => {
       // Fill cache to capacity
       cache.put("key1", new ArrayBuffer(8));
-      console.log({
-        head: cache.linkedList.getHead(),
-        tail: cache.linkedList.getTail(),
-        value: "key1",
-      });
 
       cache.put("key2", new ArrayBuffer(8));
-      console.log({
-        head: cache.linkedList.getHead(),
-        tail: cache.linkedList.getTail(),
-        value: "key2",
-      });
 
       cache.put("key3", new ArrayBuffer(8));
 

@@ -6,6 +6,7 @@
   "type": "module",
   "scripts": {
     "test": "vitest",
+    "test:user-service": "vitest user-service/integration.test.ts",
     "user-service:dev": "tsx --env-file=.env --watch user-service/index.ts",
     "user-service:prod": "tsx --env-file=.env user-service/index.ts",
     "http-blob-server:dev": "node --env-file=.env --watch distributed-system-project/http-blob-server/index.ts",

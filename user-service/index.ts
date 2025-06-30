@@ -34,4 +34,7 @@ const start = async () => {
     process.exit(1);
   }
 };
-start();
+
+if (import.meta.url === `file://${process.argv[1]}`) {
+  start();
+}
