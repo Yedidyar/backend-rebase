@@ -37,7 +37,7 @@ export class UserRepository {
           email = EXCLUDED.email,
           full_name = EXCLUDED.full_name,
           deleted_at = EXCLUDED.deleted_at
-        WHERE users.email = EXCLUDED.email AND users.deleted_at IS NULL
+        WHERE users.email = EXCLUDED.email
         RETURNING id, email, full_name, joined_at, 
             (users.deleted_at is NULL) as already_exists, 
             (xmax = 0) as is_insert;
@@ -77,7 +77,7 @@ export class UserRepository {
   }
 
   async getUser(email: string): Promise<UserDto | null> {
-    const getUserQuery = `SELECT email, full_name, joined_at FROM users WHERE email = $1`;
+    const getUserQuery = `SELECT email, full_name, joined_at FROM users WHERE email = $1 AND deleted_at IS NULL`;
     await using session = await this.#getSession();
     const { rows } = await session.session.query(getUserQuery, [email]);
     return rows[0] ?? null;

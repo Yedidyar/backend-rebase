@@ -3,16 +3,18 @@ import { logger } from "../index.ts";
 import { upsertUserAction } from "../repositories/users.ts";
 import { UpsertError } from "../services/user.service.ts";
 
+type EmailParams = { email: string };
+
 export type GetUserRequest = FastifyRequest<{
-  Params: { email: string };
+  Params: EmailParams;
 }>;
 
 export type CreateOrUpdateUserRequest = FastifyRequest<{
-  Body: { email: string; fullName: string };
+  Body: { fullName: string } & EmailParams;
 }>;
 
 export type DeleteUserRequest = FastifyRequest<{
-  Params: { email: string };
+  Params: EmailParams;
 }>;
 
 export async function getUserHandler(
@@ -31,19 +33,19 @@ export async function getUserHandler(
   } catch (error) {
     logger.error({
       action: "GET USER",
-      message: `Couldn't get user: ${(error as Error).message}`,
-      cause: (error as Error).cause,
+      message: `Couldn't get user: ${(error as Error)?.message ?? "n/a"}`,
+      cause: (error as Error)?.cause,
     });
     return reply.status(500).send("Couldn't get user");
   }
 }
 
-export async function saveOrCreateUserHandler(
+export async function createOrUpdateUserHandler(
   request: CreateOrUpdateUserRequest,
   reply: FastifyReply,
 ) {
+  const { email, fullName } = request.body;
   try {
-    const { email, fullName } = request.body;
     const user = await request.server.userService.createOrUpdateUser(
       email,
       fullName,
@@ -54,7 +56,7 @@ export async function saveOrCreateUserHandler(
       logger.error({
         action: upsertUserAction,
         message: `Couldn't save user: ${err.message}`,
-        cause: (err as Error)?.cause,
+        cause: err.cause,
       });
     } else {
       logger.error({
@@ -76,15 +78,24 @@ export async function deleteUserHandler(
     await request.server.userRepository.delete(email);
     return reply.status(200).send();
   } catch (error) {
+    logger.error({
+      action: "DELETE USER",
+      message: `Couldn't delete user: ${(error as Error).message}`,
+      cause: (error as Error).cause,
+    });
     return reply.status(500).send("Couldn't delete user");
   }
 }
 
 export async function userRoutes(fastify: FastifyInstance, options: object) {
-  fastify.get<{ Params: { email: string } }>("/:email", getUserHandler);
-  fastify.post<{ Body: { email: string; fullName: string } }>(
+  fastify.get<{ Params: EmailParams }>("/:email", getUserHandler);
+  fastify.post<{ Body: { fullName: string } & EmailParams }>(
     "/",
-    saveOrCreateUserHandler,
+    createOrUpdateUserHandler,
   );
-  fastify.delete<{ Params: { email: string } }>("/:email", deleteUserHandler);
+  fastify.put<{ Body: { fullName: string } & EmailParams }>(
+    "/:email",
+    createOrUpdateUserHandler,
+  );
+  fastify.delete<{ Params: EmailParams }>("/:email", deleteUserHandler);
 }

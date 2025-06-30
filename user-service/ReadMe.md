@@ -113,7 +113,7 @@ GET /users/:email
 ### Create or Update User
 
 ```http
-POST /users/:email
+POST /users
 ```
 
 **URL Parameters:**

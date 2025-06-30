@@ -23,7 +23,7 @@ export const createLogger = (serviceName: string) => {
           winston.format.timestamp(),
           winston.format.colorize(),
           winston.format.printf(({ timestamp, level, message, ...meta }) => {
-            return `${timestamp} [${level}]: ${message} ${
+            return `${timestamp} [${level}]: ${JSON.stringify(message, null, 2)} ${
               Object.keys(meta).length ? JSON.stringify(meta, null, 2) : ""
             }`;
           }),

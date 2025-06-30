@@ -5,7 +5,7 @@ import { UserRepository, upsertUserAction } from "../repositories/users.ts";
 export class UpsertError extends Error {
   action: string;
   constructor(err: Error) {
-    super(err.message);
+    super(err.message, { cause: err.cause });
     this.action = upsertUserAction;
   }
 }
