@@ -6,6 +6,9 @@
   "type": "module",
   "scripts": {
     "test": "vitest",
+    "test:user-service": "vitest user-service/integration.test.ts",
+    "user-service:dev": "tsx --env-file=.env --watch user-service/index.ts",
+    "user-service:prod": "tsx --env-file=.env user-service/index.ts",
     "http-blob-server:dev": "node --env-file=.env --watch distributed-system-project/http-blob-server/index.ts",
     "http-blob-server:prod": "node --env-file=.env distributed-system-project/http-blob-server/index.ts",
     "load-balancer:dev": "node --env-file=.env --watch distributed-system-project/load-balancer/index.ts",
@@ -23,13 +26,16 @@
     "fastify": "^5.3.3",
     "heap-js": "^2.6.0",
     "mime-types": "^3.0.1",
+    "pg": "^8.16.3",
     "prettier": "^3.5.3",
+    "uuidv7": "^1.0.2",
     "winston": "^3.17.0",
     "winston-logzio": "^5.2.0"
   },
   "devDependencies": {
     "@types/mime-types": "^2.1.4",
     "@types/node": "^22.15.12",
+    "@types/pg": "^8.15.4",
     "pino-pretty": "^13.0.0",
     "tsx": "^4.19.4",
     "typescript": "^5.8.3",
