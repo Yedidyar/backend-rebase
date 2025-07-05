@@ -5,7 +5,9 @@ hero:
   name: "Backend Rebase"
   text: "Distributed Systems & Backend Services"
   tagline: "A comprehensive backend project featuring distributed systems, microservices, and data structures implementations"
-
+  image:
+    src: /ron.png
+    alt: Ron Klain
   actions:
     - theme: brand
       text: View on GitHub
