@@ -1,9 +1,8 @@
 import Fastify from "fastify";
 import { config } from "../config.ts";
 import { createLogger } from "../logger/index.ts";
-import { UserRepository } from "../increments-service/repositories/users.ts";
-import { userRoutes } from "../increments-service/handlers/index.ts";
-import { UserService } from "./services/user.service.ts";
+import { PageViewsReportRepository } from "./repositories/page-views.ts";
+import { pageViewsRoutes } from "./handlers/index.ts";
 
 export const logger = createLogger("user-service");
 
@@ -11,21 +10,15 @@ const fastify = Fastify();
 
 declare module "fastify" {
   interface FastifyInstance {
-    userRepository: UserRepository;
-    userService: UserService;
+    pageViewsRepository: PageViewsReportRepository;
   }
 }
 
-/**
- * Run the server!
- */
-
 const start = async () => {
   try {
-    fastify.decorate("userRepository", new UserRepository());
-    fastify.decorate("userService", new UserService(fastify.userRepository));
+    fastify.decorate("pageViewsRepository", new PageViewsReportRepository());
 
-    await fastify.register(userRoutes, { prefix: "/users" });
+    await fastify.register(pageViewsRoutes, { prefix: "/report" });
 
     await fastify.listen({ port: config.PORT, host: "0.0.0.0" });
     logger.info(`Server listening on port ${config.PORT}`);
@@ -35,6 +28,8 @@ const start = async () => {
   }
 };
 
+// Only start the server if this file is run directly (not imported as a module)
+// This prevents the server from starting when the file is imported for testing or other purposes
 if (import.meta.url === `file://${process.argv[1]}`) {
   start();
 }
