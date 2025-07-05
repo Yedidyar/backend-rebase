@@ -13,7 +13,7 @@ CREATE TABLE IF NOT EXISTS page_views (
 
 CREATE INDEX IF NOT EXISTS idx_page_views_name_date_hour ON page_views (name, date, hour);
 
-CREATE MATERIALIZED VIEW CONCURRENTLY IF NOT EXISTS page_views_report AS
+CREATE MATERIALIZED VIEW IF NOT EXISTS page_views_report AS
 SELECT
   p.id AS page_id,
   p.name AS page_name,
