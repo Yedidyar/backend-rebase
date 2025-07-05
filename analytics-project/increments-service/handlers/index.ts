@@ -1,5 +1,5 @@
 import type { FastifyReply, FastifyRequest, FastifyInstance } from "fastify";
-import { logger } from "../../analytics-service/index.ts";
+import { logger } from "../index.ts";
 
 export type CreateOrUpdateSingleIncrementRequest = FastifyRequest<{
   Body: { page: string; timestamp: string };

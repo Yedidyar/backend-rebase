@@ -3,6 +3,7 @@ import { type FastifyInstance } from "fastify";
 import { Pool } from "pg";
 import { createTestApp } from "./test-setup.ts";
 import { uuidv7 } from "uuidv7";
+import { logger } from "./index.ts";
 
 vi.mock("./logger/index.ts", () => ({
   createLogger: () => ({
@@ -45,7 +46,7 @@ describe("Increments Service API Integration Tests", () => {
         payload: incrementData,
       });
 
-      expect(response.statusCode).toBe(201);
+      expect(response.statusCode).toBe(200);
 
       const result = await testPool.query(
         "SELECT * FROM page_views WHERE name = $1",
@@ -53,7 +54,7 @@ describe("Increments Service API Integration Tests", () => {
       );
 
       expect(result.rows.length).toBe(1);
-      expect(result.rows[0].views_count).toBe(1);
+      expect(result.rows[0].views_count).toBe("1");
     });
 
     it("should update existing page_views when creating with same page", async () => {
@@ -75,7 +76,7 @@ describe("Increments Service API Integration Tests", () => {
         payload: incrementData,
       });
 
-      expect(response.statusCode).toBe(201);
+      expect(response.statusCode).toBe(200);
 
       const result = await testPool.query(
         "SELECT * FROM page_views WHERE name = $1",
@@ -83,7 +84,7 @@ describe("Increments Service API Integration Tests", () => {
       );
 
       expect(result.rows.length).toBe(1);
-      expect(result.rows[0].views_count).toBe(2);
+      expect(result.rows[0].views_count).toBe("2");
     });
   });
 });

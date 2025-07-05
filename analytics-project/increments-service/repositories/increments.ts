@@ -1,6 +1,7 @@
 import { Pool } from "pg";
 import { pool } from "./pool.ts";
 import { logger } from "../index.ts";
+import { uuidv7 } from "uuidv7";
 
 export class IncrementsRepository {
   #pool: Pool;
@@ -20,15 +21,16 @@ export class IncrementsRepository {
   }
 
   async incrementPage(page: string, date: Date, hour: number, value: number) {
-    const { session } = await this.#getSession();
+    await using sessionResource = await this.#getSession();
+    const { session } = sessionResource;
 
     try {
       const result = await session.query(
-        `INSERT INTO page_views (name, date, hour, views_count) 
-         VALUES ($1, $2, $3, $4)
+        `INSERT INTO page_views (id, name, date, hour, views_count) 
+         VALUES ($1, $2, $3, $4, $5)
          ON CONFLICT (name, date, hour) 
-         DO UPDATE SET views_count = page_views.views_count + $4`,
-        [page, date, hour, value],
+         DO UPDATE SET views_count = page_views.views_count + $5`,
+        [uuidv7(), page, date, hour, value],
       );
 
       if (result.rowCount === 0) {
@@ -41,7 +43,7 @@ export class IncrementsRepository {
         return null;
       }
     } catch (err) {
-      throw new Error("Couldn't increment page");
+      throw new Error("Couldn't increment page", { cause: err });
     }
   }
 }
