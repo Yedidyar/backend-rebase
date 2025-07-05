@@ -12,7 +12,11 @@ export default defineConfig({
     sidebar: [
       {
         text: "Project Overview",
-        items: [{ text: "Introduction", link: "/README" }],
+        items: [
+          { text: "User Service", link: "/user-service" },
+          { text: "Analytics Service", link: "/analytics-project" },
+          { text: "Blob Service", link: "/blob-service" },
+        ],
       },
     ],
 

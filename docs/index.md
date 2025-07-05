@@ -10,6 +10,15 @@ hero:
     - theme: brand
       text: View on GitHub
       link: https://github.com/yedidyar/backend-rebase
+    - theme: alt
+      text: User Service
+      link: /user-service
+    - theme: alt
+      text: Analytics Service
+      link: /analytics-project
+    - theme: alt
+      text: Blob Service
+      link: /blob-service
 
 features:
   - icon: 🌐
@@ -113,10 +122,3 @@ Full Docker Compose setup with service orchestration, networking, and environmen
 - **Testing**: Vitest for unit and integration tests
 - **Containerization**: Docker and Docker Compose
 - **Package Management**: pnpm for efficient dependency management
-
-<!-- Or dive into specific topics:
-
-- [Distributed Systems](/distributed-system-project/README)
-- [Analytics Platform](/analytics-project/README)
-- [User Management](/user-service/README)
-- [Data Structures](/data-structures/README) -->
