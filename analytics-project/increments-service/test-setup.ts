@@ -1,14 +1,14 @@
 import { Pool } from "pg";
 import Fastify, { type FastifyInstance } from "fastify";
-import { UserRepository } from "./increments-service/repositories/users.ts";
-import { UserService } from "./services/user.service.ts";
-import { userRoutes } from "./increments-service/handlers/index.ts";
+import { IncrementsRepository } from "./repositories/increments.ts";
+import { IncrementsService } from "./services/increments.service.ts";
+import { incrementsRoutes } from "./handlers/index.ts";
 import { execSync } from "child_process";
 
 // Test database configuration
 const TEST_CONNECTION_STRING =
   process.env.TEST_CONNECTION_STRING ||
-  "postgresql://postgres@localhost:54321/user_service";
+  "postgresql://postgres@localhost:54321/analytics";
 
 export async function createTestApp(): Promise<{
   app: FastifyInstance;
@@ -26,18 +26,18 @@ export async function createTestApp(): Promise<{
   }
 
   execSync(
-    `flyway -url=jdbc:postgresql://localhost:54321/user_service -user=postgres -password=postgres -locations=filesystem:${__dirname}/migrations migrate`,
+    `flyway -url=jdbc:postgresql://localhost:54321/analytics -user=postgres -password=postgres -locations=filesystem:${__dirname}/migrations migrate`,
   );
 
   const app = Fastify({ logger: false });
 
-  const userRepository = new UserRepository(testPool);
-  const userService = new UserService(userRepository);
+  const incrementsRepository = new IncrementsRepository(testPool);
+  const incrementsService = new IncrementsService(incrementsRepository);
 
-  app.decorate("userRepository", userRepository);
-  app.decorate("userService", userService);
+  app.decorate("incrementsRepository", incrementsRepository);
+  app.decorate("incrementsService", incrementsService);
 
-  await app.register(userRoutes, { prefix: "/users" });
+  await app.register(incrementsRoutes, { prefix: "/increments" });
   await app.ready();
 
   return { app, testPool };
