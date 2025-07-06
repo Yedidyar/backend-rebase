@@ -24,7 +24,7 @@ const start = async () => {
       new IncrementsService(fastify.incrementsRepository),
     );
 
-    await fastify.register(incrementsRoutes, { prefix: "/increments" });
+    await fastify.register(incrementsRoutes, { prefix: "/page-views" });
 
     await fastify.listen({ port: config.PORT, host: "0.0.0.0" });
     logger.info(`Server listening on port ${config.PORT}`);

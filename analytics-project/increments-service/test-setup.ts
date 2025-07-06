@@ -26,7 +26,7 @@ export async function createTestApp(): Promise<{
   }
 
   execSync(
-    `flyway -url=jdbc:postgresql://localhost:54321/analytics -user=postgres -password=postgres -locations=filesystem:${__dirname}/migrations migrate`,
+    `flyway -url=jdbc:postgresql://localhost:54321/analytics -user=postgres -password=postgres -locations=filesystem:${__dirname}/../migrations migrate`,
   );
 
   const app = Fastify({ logger: false });
@@ -37,7 +37,7 @@ export async function createTestApp(): Promise<{
   app.decorate("incrementsRepository", incrementsRepository);
   app.decorate("incrementsService", incrementsService);
 
-  await app.register(incrementsRoutes, { prefix: "/increments" });
+  await app.register(incrementsRoutes, { prefix: "/page-views" });
   await app.ready();
 
   return { app, testPool };
