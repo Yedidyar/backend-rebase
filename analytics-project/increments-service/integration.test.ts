@@ -3,7 +3,6 @@ import { type FastifyInstance } from "fastify";
 import { Pool } from "pg";
 import { createTestApp } from "./test-setup.ts";
 import { uuidv7 } from "uuidv7";
-import { logger } from "./index.ts";
 
 vi.mock("./logger/index.ts", () => ({
   createLogger: () => ({
@@ -54,7 +53,10 @@ describe("Increments Service API Integration Tests", () => {
       );
 
       expect(result.rows.length).toBe(1);
-      expect(result.rows[0].views_count).toBe("1");
+      expect(result.rows[0]).toMatchObject({
+        name: incrementData.page,
+        views_count: "1",
+      });
     });
 
     it("should update existing page_views when creating with same page", async () => {
@@ -63,7 +65,6 @@ describe("Increments Service API Integration Tests", () => {
         timestamp: "2025-01-01T00:00:00.000Z",
       };
 
-      // Create page_views first
       await app.inject({
         method: "POST",
         url: "/page-views/single",
@@ -84,7 +85,52 @@ describe("Increments Service API Integration Tests", () => {
       );
 
       expect(result.rows.length).toBe(1);
-      expect(result.rows[0].views_count).toBe("2");
+      expect(result.rows[0]).toMatchObject({
+        name: incrementData.page,
+        views_count: "2",
+      });
+    });
+
+    it("should handle invalid timestamp format", async () => {
+      const incrementData = {
+        page: "test.html",
+        timestamp: "invalid-timestamp",
+      };
+
+      const response = await app.inject({
+        method: "POST",
+        url: "/page-views/single",
+        payload: incrementData,
+      });
+
+      expect(response.statusCode).toBe(400);
+      const responseBody = JSON.parse(response.body);
+      expect(responseBody).toMatchObject({
+        error: "Bad Request",
+      });
+      expect(responseBody.message).toContain("date-time");
+    });
+
+    it("should handle empty page identifier", async () => {
+      const incrementData = {
+        page: "",
+        timestamp: "2025-01-01T00:00:00.000Z",
+      };
+
+      const response = await app.inject({
+        method: "POST",
+        url: "/page-views/single",
+        payload: incrementData,
+      });
+
+      expect(response.statusCode).toBe(400);
+      const responseBody = JSON.parse(response.body);
+      expect(responseBody).toMatchObject({
+        error: "Bad Request",
+      });
+      expect(responseBody.message).toContain(
+        "must NOT have fewer than 1 characters",
+      );
     });
   });
 
@@ -110,33 +156,48 @@ describe("Increments Service API Integration Tests", () => {
 
       expect(response.statusCode).toBe(200);
 
-      // Check first page entries
       const altmanPage = Object.keys(multiIncrementData)[0];
       const altmanResult = await testPool.query(
         "SELECT * FROM page_views WHERE name = $1 ORDER BY hour",
         [altmanPage],
       );
 
-      expect(altmanResult.rows.length).toBe(3);
-      expect(altmanResult.rows[0].views_count).toBe("103");
-      expect(altmanResult.rows[0].hour).toBe(0);
-      expect(altmanResult.rows[1].views_count).toBe("200");
-      expect(altmanResult.rows[1].hour).toBe(1);
-      expect(altmanResult.rows[2].views_count).toBe("405");
-      expect(altmanResult.rows[2].hour).toBe(2);
+      expect(altmanResult.rows).toStrictEqual([
+        expect.objectContaining({
+          name: altmanPage,
+          views_count: "103",
+          hour: 0,
+        }),
+        expect.objectContaining({
+          name: altmanPage,
+          views_count: "200",
+          hour: 1,
+        }),
+        expect.objectContaining({
+          name: altmanPage,
+          views_count: "405",
+          hour: 2,
+        }),
+      ]);
 
-      // Check second page entries
       const muskPage = Object.keys(multiIncrementData)[1];
       const muskResult = await testPool.query(
         "SELECT * FROM page_views WHERE name = $1 ORDER BY hour",
         [muskPage],
       );
 
-      expect(muskResult.rows.length).toBe(2);
-      expect(muskResult.rows[0].views_count).toBe("838");
-      expect(muskResult.rows[0].hour).toBe(0);
-      expect(muskResult.rows[1].views_count).toBe("654");
-      expect(muskResult.rows[1].hour).toBe(1);
+      expect(muskResult.rows).toStrictEqual([
+        expect.objectContaining({
+          name: muskPage,
+          views_count: "838",
+          hour: 0,
+        }),
+        expect.objectContaining({
+          name: muskPage,
+          views_count: "654",
+          hour: 1,
+        }),
+      ]);
     });
 
     it("should update existing page_views when creating with same page and time", async () => {
@@ -147,14 +208,12 @@ describe("Increments Service API Integration Tests", () => {
         },
       };
 
-      // Create initial entry
       await app.inject({
         method: "POST",
         url: "/page-views/multi",
         payload: multiIncrementData,
       });
 
-      // Update with additional views
       const updateData = {
         [pageName]: {
           "2025-01-01T00:00:00.000Z": 50,
@@ -174,11 +233,13 @@ describe("Increments Service API Integration Tests", () => {
         [pageName],
       );
 
-      expect(result.rows.length).toBe(1);
-      expect(result.rows[0].views_count).toBe("150"); // 100 + 50
+      expect(result.rows[0]).toMatchObject({
+        name: pageName,
+        views_count: "150",
+      });
     });
 
-    it("should handle invalid time format", async () => {
+    it("should handle invalid timestamp format", async () => {
       const multiIncrementData = {
         "test.html": {
           "invalid-time-format": 100,
@@ -191,19 +252,78 @@ describe("Increments Service API Integration Tests", () => {
         payload: multiIncrementData,
       });
 
-      expect(response.statusCode).toBe(500);
+      expect(response.statusCode).toBe(400);
+      const responseBody = JSON.parse(response.body);
+      expect(responseBody).toMatchObject({
+        error: "Invalid input data",
+        details: expect.stringContaining("invalid-time-format"),
+      });
+    });
+
+    it("should handle empty request body", async () => {
+      const response = await app.inject({
+        method: "POST",
+        url: "/page-views/multi",
+        payload: {},
+      });
+
+      expect(response.statusCode).toBe(400);
+      const responseBody = JSON.parse(response.body);
+      expect(responseBody).toStrictEqual({
+        error: "Request body cannot be empty",
+      });
+    });
+
+    it("should handle invalid page identifier", async () => {
+      const multiIncrementData = {
+        "": {
+          "2025-01-01T00:00:00.000Z": 100,
+        },
+      };
+
+      const response = await app.inject({
+        method: "POST",
+        url: "/page-views/multi",
+        payload: multiIncrementData,
+      });
+
+      expect(response.statusCode).toBe(400);
+      const responseBody = JSON.parse(response.body);
+      expect(responseBody).toStrictEqual({
+        error: "Request body cannot be empty",
+      });
+    });
+
+    it("should handle negative increment values", async () => {
+      const multiIncrementData = {
+        "test.html": {
+          "2025-01-01T00:00:00.000Z": -5,
+        },
+      };
+
+      const response = await app.inject({
+        method: "POST",
+        url: "/page-views/multi",
+        payload: multiIncrementData,
+      });
+
+      expect(response.statusCode).toBe(400);
+      const responseBody = JSON.parse(response.body);
+      expect(responseBody).toMatchObject({
+        error: "Bad Request",
+      });
+      expect(responseBody.message).toContain("must be >= 0");
     });
 
     it("should aggregate multiple entries for same page, date, and hour within single request", async () => {
       const pageName = `${uuidv7()}_aggregation_test.html`;
 
-      // Create data with multiple timestamps that resolve to the same hour
       const multiIncrementData = {
         [pageName]: {
-          "2025-01-01T00:15:00.000Z": 100, // Hour 0
-          "2025-01-01T00:30:00.000Z": 200, // Hour 0 (same hour as above)
-          "2025-01-01T00:45:00.000Z": 300, // Hour 0 (same hour as above)
-          "2025-01-01T01:00:00.000Z": 150, // Hour 1
+          "2025-01-01T00:15:00.000Z": 100,
+          "2025-01-01T00:30:00.000Z": 200,
+          "2025-01-01T00:45:00.000Z": 300,
+          "2025-01-01T01:00:00.000Z": 150,
         },
       };
 
@@ -220,16 +340,18 @@ describe("Increments Service API Integration Tests", () => {
         [pageName],
       );
 
-      // Should have 2 entries: one for hour 0 and one for hour 1
-      expect(result.rows.length).toBe(2);
-
-      // Hour 0 should have aggregated value: 100 + 200 + 300 = 600
-      expect(result.rows[0].hour).toBe(0);
-      expect(result.rows[0].views_count).toBe("600");
-
-      // Hour 1 should have the single value: 150
-      expect(result.rows[1].hour).toBe(1);
-      expect(result.rows[1].views_count).toBe("150");
+      expect(result.rows).toStrictEqual([
+        expect.objectContaining({
+          name: pageName,
+          hour: 0,
+          views_count: "600",
+        }),
+        expect.objectContaining({
+          name: pageName,
+          hour: 1,
+          views_count: "150",
+        }),
+      ]);
     });
   });
 });

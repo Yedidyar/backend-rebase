@@ -1,4 +1,4 @@
-import { Pool } from "pg";
+import { Pool, type PoolClient } from "pg";
 import { pool } from "./pool.ts";
 import { logger } from "../index.ts";
 import { uuidv7 } from "uuidv7";
@@ -21,7 +21,7 @@ export class IncrementsRepository {
   }
 
   async #executeIncrementQuery(
-    session: any,
+    session: PoolClient,
     page: string,
     date: Date,
     hour: number,
