@@ -2,12 +2,6 @@ import type { FastifyReply, FastifyRequest, FastifyInstance } from "fastify";
 import { logger } from "../index.ts";
 import { HTTP_STATUS, ERROR_MESSAGES } from "../constants/index.ts";
 
-type ValidationResult = {
-  isValid: boolean;
-  error?: string;
-  details?: string;
-};
-
 const singleIncrementSchema = {
   body: {
     type: "object",
@@ -23,12 +17,15 @@ const singleIncrementSchema = {
 const multiIncrementSchema = {
   body: {
     type: "object",
+    minProperties: 1,
     patternProperties: {
       "^.+$": {
         type: "object",
+        minProperties: 1,
         patternProperties: {
           "^.+$": { type: "number", minimum: 0 },
         },
+        additionalProperties: false,
       },
     },
     additionalProperties: false,
@@ -43,95 +40,12 @@ export type CreateOrUpdateMultiIncrementRequest = FastifyRequest<{
   Body: Record<string, Record<string, number>>;
 }>;
 
-function validateSingleIncrement(
-  page: string,
-  timestamp: string,
-): ValidationResult {
-  if (!page || typeof page !== "string" || page.trim().length === 0) {
-    return {
-      isValid: false,
-      error: ERROR_MESSAGES.INVALID_PAGE,
-      details: `Invalid page identifier: '${page}'. Page must be a non-empty string.`,
-    };
-  }
-
-  const date = new Date(timestamp);
-  if (isNaN(date.getTime())) {
-    return {
-      isValid: false,
-      error: ERROR_MESSAGES.INVALID_TIMESTAMP,
-      details: `Invalid timestamp format: '${timestamp}'. Expected ISO 8601 format.`,
-    };
-  }
-
-  return { isValid: true };
-}
-
-function validateMultipleIncrements(
-  pageData: Record<string, Record<string, number>>,
-): ValidationResult {
-  if (!pageData || typeof pageData !== "object") {
-    return {
-      isValid: false,
-      error: "Invalid input data",
-      details: "Invalid page data: expected object with page names as keys",
-    };
-  }
-
-  for (const [page, timeData] of Object.entries(pageData)) {
-    if (!page || typeof page !== "string" || page.trim().length === 0) {
-      return {
-        isValid: false,
-        error: "Invalid input data",
-        details: `Invalid page identifier: '${page}'. Page must be a non-empty string.`,
-      };
-    }
-
-    if (!timeData || typeof timeData !== "object") {
-      return {
-        isValid: false,
-        error: "Invalid input data",
-        details: `Invalid time data for page '${page}': expected object with timestamps as keys.`,
-      };
-    }
-
-    for (const [timeKey, value] of Object.entries(timeData)) {
-      const date = new Date(timeKey);
-      if (isNaN(date.getTime())) {
-        return {
-          isValid: false,
-          error: "Invalid input data",
-          details: `Invalid timestamp format for page '${page}' at time '${timeKey}': expected ISO 8601 format.`,
-        };
-      }
-
-      if (typeof value !== "number" || value < 0 || !Number.isInteger(value)) {
-        return {
-          isValid: false,
-          error: "Invalid input data",
-          details: `Invalid increment value for page '${page}' at time '${timeKey}': expected non-negative integer, got ${value}.`,
-        };
-      }
-    }
-  }
-
-  return { isValid: true };
-}
-
 export async function createOrUpdateSingleIncrementHandler(
   request: CreateOrUpdateSingleIncrementRequest,
   reply: FastifyReply,
 ) {
   try {
     const { page, timestamp } = request.body;
-
-    const validation = validateSingleIncrement(page, timestamp);
-    if (!validation.isValid) {
-      return reply.status(HTTP_STATUS.BAD_REQUEST).send({
-        error: validation.error,
-        details: validation.details,
-      });
-    }
 
     await request.server.incrementsService.incrementPage(page, timestamp);
     return reply.status(HTTP_STATUS.OK).send();
@@ -165,12 +79,22 @@ export async function createOrUpdateMultiIncrementHandler(
       });
     }
 
-    const validation = validateMultipleIncrements(pageData);
-    if (!validation.isValid) {
-      return reply.status(HTTP_STATUS.BAD_REQUEST).send({
-        error: validation.error,
-        details: validation.details,
-      });
+    for (const [page, timeData] of Object.entries(pageData)) {
+      if (!page || page.trim().length === 0) {
+        return reply.status(HTTP_STATUS.BAD_REQUEST).send({
+          error: "Request body cannot be empty",
+        });
+      }
+
+      for (const [timeKey] of Object.entries(timeData)) {
+        const date = new Date(timeKey);
+        if (isNaN(date.getTime())) {
+          return reply.status(HTTP_STATUS.BAD_REQUEST).send({
+            error: "Invalid input data",
+            details: `Invalid timestamp format for page '${page}' at time '${timeKey}': expected ISO 8601 format.`,
+          });
+        }
+      }
     }
 
     await request.server.incrementsService.incrementMultiplePages(pageData);

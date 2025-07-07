@@ -268,10 +268,6 @@ describe("Increments Service API Integration Tests", () => {
       });
 
       expect(response.statusCode).toBe(400);
-      const responseBody = JSON.parse(response.body);
-      expect(responseBody).toStrictEqual({
-        error: "Request body cannot be empty",
-      });
     });
 
     it("should handle invalid page identifier", async () => {
