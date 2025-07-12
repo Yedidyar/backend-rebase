@@ -6,3 +6,5 @@ metadata
 storage
 .DS_Store
 *.env
+docs/.vitepress/dist
+docs/.vitepress/cache
