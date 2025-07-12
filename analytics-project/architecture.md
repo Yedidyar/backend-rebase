@@ -22,7 +22,8 @@ POST /page-views/multi/
 writes the payload to the raw_views queue
 
 and every request is queued to the raw_views queue
-aggregator-
+aggregator-Ariel
 basically performs only /multi requests
-partitioner- basically a queue load balancer to queues
-deployment-
+partitioner-Yedidya
+basically a queue load balancer to queues
+deployment- Tomer
