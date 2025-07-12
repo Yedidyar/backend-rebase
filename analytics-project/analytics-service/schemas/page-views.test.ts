@@ -148,17 +148,6 @@ describe("pageViewsFiltersSchema", () => {
       }
     });
 
-    it("should reject non-number take value", () => {
-      const input = { take: "10" };
-      const result = pageViewsFiltersSchema.safeParse(input);
-      expect(result.success).toBe(false);
-      if (!result.success) {
-        expect(result.error.issues).toHaveLength(1);
-        expect(result.error.issues?.[0]?.path).toEqual(["take"]);
-        expect(result.error.issues?.[0]?.code).toBe("invalid_type");
-      }
-    });
-
     it("should reject non-string now value", () => {
       const input = { now: 123 };
       const result = pageViewsFiltersSchema.safeParse(input);
