@@ -1,101 +1,133 @@
 import type { FastifyReply, FastifyRequest, FastifyInstance } from "fastify";
-import { logger } from "../../analytics-service/index.ts";
-import { upsertUserAction } from "../repositories/users.ts";
-import { UpsertError } from "../../services/user.service.ts";
+import { logger } from "../index.ts";
+import { HTTP_STATUS, ERROR_MESSAGES } from "../constants/index.ts";
 
-type EmailParams = { email: string };
+const singleIncrementSchema = {
+  body: {
+    type: "object",
+    required: ["page", "timestamp"],
+    properties: {
+      page: { type: "string", minLength: 1, maxLength: 255 },
+      timestamp: { type: "string", format: "date-time" },
+    },
+    additionalProperties: false,
+  },
+};
 
-export type GetUserRequest = FastifyRequest<{
-  Params: EmailParams;
+const multiIncrementSchema = {
+  body: {
+    type: "object",
+    minProperties: 1,
+    patternProperties: {
+      "^.+$": {
+        type: "object",
+        minProperties: 1,
+        patternProperties: {
+          "^.+$": { type: "number", minimum: 0 },
+        },
+        additionalProperties: false,
+      },
+    },
+    additionalProperties: false,
+  },
+};
+
+export type CreateOrUpdateSingleIncrementRequest = FastifyRequest<{
+  Body: { page: string; timestamp: string };
 }>;
 
-export type CreateOrUpdateUserRequest = FastifyRequest<{
-  Body: { fullName: string } & EmailParams;
+export type CreateOrUpdateMultiIncrementRequest = FastifyRequest<{
+  Body: Record<string, Record<string, number>>;
 }>;
 
-export type DeleteUserRequest = FastifyRequest<{
-  Params: EmailParams;
-}>;
-
-export async function getUserHandler(
-  request: GetUserRequest,
+export async function createOrUpdateSingleIncrementHandler(
+  request: CreateOrUpdateSingleIncrementRequest,
   reply: FastifyReply,
 ) {
   try {
-    const { email } = request.params;
-    const user = await request.server.userService.getUser(email);
+    const { page, timestamp } = request.body;
 
-    if (!user) {
-      return reply.status(404).send({ error: "User not found" });
-    }
-
-    return reply.send(user);
-  } catch (error) {
-    logger.error({
-      action: "GET USER",
-      message: `Couldn't get user: ${(error as Error)?.message ?? "n/a"}`,
-      cause: (error as Error)?.cause,
-    });
-    return reply.status(500).send("Couldn't get user");
-  }
-}
-
-export async function createOrUpdateUserHandler(
-  request: CreateOrUpdateUserRequest,
-  reply: FastifyReply,
-) {
-  const { email, fullName } = request.body;
-  try {
-    const user = await request.server.userService.createOrUpdateUser(
-      email,
-      fullName,
-    );
-    return reply.status(201).send(user);
+    await request.server.incrementsService.incrementPage(page, timestamp);
+    return reply.status(HTTP_STATUS.OK).send();
   } catch (err) {
-    if (err instanceof UpsertError) {
+    if (err instanceof Error) {
       logger.error({
-        action: upsertUserAction,
-        message: `Couldn't save user: ${err.message}`,
+        action: "INCREMENT PAGE",
+        message: err.message,
         cause: err.cause,
-      });
-    } else {
-      logger.error({
-        action: upsertUserAction,
-        message: (err as Error)?.message,
-        cause: (err as Error)?.cause,
+        page: request.body.page,
+        timestamp: request.body.timestamp,
       });
     }
-    return reply.status(500).send("Couldn't save user");
+
+    return reply.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).send({
+      error: ERROR_MESSAGES.PAGE_INCREMENT_FAILED,
+    });
   }
 }
 
-export async function deleteUserHandler(
-  request: DeleteUserRequest,
+export async function createOrUpdateMultiIncrementHandler(
+  request: CreateOrUpdateMultiIncrementRequest,
   reply: FastifyReply,
 ) {
   try {
-    const { email } = request.params;
-    await request.server.userRepository.delete(email);
-    return reply.status(200).send();
-  } catch (error) {
-    logger.error({
-      action: "DELETE USER",
-      message: `Couldn't delete user: ${(error as Error).message}`,
-      cause: (error as Error).cause,
+    const pageData = request.body;
+
+    if (!pageData || Object.keys(pageData).length === 0) {
+      return reply.status(HTTP_STATUS.BAD_REQUEST).send({
+        error: "Request body cannot be empty",
+      });
+    }
+
+    for (const [page, timeData] of Object.entries(pageData)) {
+      if (!page || page.trim().length === 0) {
+        return reply.status(HTTP_STATUS.BAD_REQUEST).send({
+          error: "Request body cannot be empty",
+        });
+      }
+
+      for (const [timeKey] of Object.entries(timeData)) {
+        const date = new Date(timeKey);
+        if (isNaN(date.getTime())) {
+          return reply.status(HTTP_STATUS.BAD_REQUEST).send({
+            error: "Invalid input data",
+            details: `Invalid timestamp format for page '${page}' at time '${timeKey}': expected ISO 8601 format.`,
+          });
+        }
+      }
+    }
+
+    await request.server.incrementsService.incrementMultiplePages(pageData);
+    return reply.status(HTTP_STATUS.OK).send();
+  } catch (err) {
+    if (err instanceof Error) {
+      logger.error({
+        action: "INCREMENT MULTIPLE PAGES",
+        message: err.message,
+        cause: err.cause,
+        pageCount: Object.keys(request.body).length,
+      });
+    }
+
+    return reply.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).send({
+      error: ERROR_MESSAGES.BATCH_INCREMENT_FAILED,
     });
-    return reply.status(500).send("Couldn't delete user");
   }
 }
 
-export async function userRoutes(fastify: FastifyInstance, options: object) {
-  fastify.get<{ Params: EmailParams }>("/:email", getUserHandler);
-  fastify.post<{ Body: { fullName: string } & EmailParams }>(
-    "/",
-    createOrUpdateUserHandler,
+export async function incrementsRoutes(
+  fastify: FastifyInstance,
+  options: object,
+) {
+  fastify.post<{ Body: { page: string; timestamp: string } }>(
+    "/single",
+    { schema: singleIncrementSchema },
+    createOrUpdateSingleIncrementHandler,
   );
-  fastify.put<{ Body: { fullName: string } & EmailParams }>(
-    "/:email",
-    createOrUpdateUserHandler,
+
+  fastify.post<{ Body: Record<string, Record<string, number>> }>(
+    "/multi",
+    { schema: multiIncrementSchema },
+    createOrUpdateMultiIncrementHandler,
   );
-  fastify.delete<{ Params: EmailParams }>("/:email", deleteUserHandler);
 }

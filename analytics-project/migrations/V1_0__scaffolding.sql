@@ -5,10 +5,11 @@ CREATE TABLE IF NOT EXISTS pages (
 
 CREATE TABLE IF NOT EXISTS page_views (
   id UUID PRIMARY KEY NOT NULL,
-  name VARCHAR(200) UNIQUE NOT NULL,
+  name VARCHAR(200) NOT NULL,
   date Date,
   hour smallint,
-  views_count bigint
+  views_count bigint,
+  UNIQUE (name, date, hour)
 );
 
 CREATE INDEX IF NOT EXISTS idx_page_views_name_date_hour ON page_views (name, date, hour);

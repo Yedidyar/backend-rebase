@@ -1,7 +1,7 @@
 services:
   postgres:
     image: postgres:16-alpine
-    container_name: analytics-project-postgres
+    container_name: analytics-postgres
     environment:
       POSTGRES_DB: analytics
       POSTGRES_USER: postgres
