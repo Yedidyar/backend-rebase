@@ -1,0 +1,373 @@
+version: "3.8"
+
+services:
+  # Database
+  postgres:
+    image: postgres:16-alpine
+    container_name: analytics-project-postgres
+    environment:
+      POSTGRES_DB: analytics
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_HOST_AUTH_METHOD: trust
+    ports:
+      - "54321:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d analytics"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - analytics-network
+
+  # Message Queue
+  rabbitmq:
+    image: rabbitmq:3-management-alpine
+    container_name: analytics-project-rabbitmq
+    environment:
+      RABBITMQ_DEFAULT_USER: admin
+      RABBITMQ_DEFAULT_PASS: admin
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - analytics-network
+
+  # API Gateway
+  api-gateway:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: analytics-project-api-gateway
+    environment:
+      PORT: 3000
+      RABBITMQ_URL: amqp://admin:admin@rabbitmq:5672
+      RABBITMQ_QUEUE: raw_views
+      ANALYTICS_SERVICE_URL: http://analytics-service:3002
+    ports:
+      - "3000:3000"
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+      analytics-service:
+        condition: service_started
+    restart: unless-stopped
+    networks:
+      - analytics-network
+    command: ["npm", "run", "api-gateway:prod"]
+
+  # Partitioner Service
+  partitioner:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: analytics-project-partitioner
+    environment:
+      RABBITMQ_URL: amqp://admin:admin@rabbitmq:5672
+      INPUT_QUEUE: raw_views
+      OUTPUT_QUEUE_PREFIX: raw_views_
+      NUM_PARTITIONS: 10
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+    restart: unless-stopped
+    networks:
+      - analytics-network
+    command: ["npm", "run", "partitioner:prod"]
+
+  # Aggregator Services (10 instances)
+  aggregator-0:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: analytics-project-aggregator-0
+    environment:
+      RABBITMQ_URL: amqp://admin:admin@rabbitmq:5672
+      INPUT_QUEUE: raw_views_0
+      AGGREGATOR_ID: 0
+      BATCH_SIZE: 1000
+      BATCH_TIMEOUT_MS: 60000
+      INCREMENTS_SERVICE_URL: http://increments-service:3001
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+      increments-service:
+        condition: service_started
+    restart: unless-stopped
+    networks:
+      - analytics-network
+    command: ["npm", "run", "aggregator:prod"]
+
+  aggregator-1:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: analytics-project-aggregator-1
+    environment:
+      RABBITMQ_URL: amqp://admin:admin@rabbitmq:5672
+      INPUT_QUEUE: raw_views_1
+      AGGREGATOR_ID: 1
+      BATCH_SIZE: 1000
+      BATCH_TIMEOUT_MS: 60000
+      INCREMENTS_SERVICE_URL: http://increments-service:3001
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+      increments-service:
+        condition: service_started
+    restart: unless-stopped
+    networks:
+      - analytics-network
+    command: ["npm", "run", "aggregator:prod"]
+
+  aggregator-2:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: analytics-project-aggregator-2
+    environment:
+      RABBITMQ_URL: amqp://admin:admin@rabbitmq:5672
+      INPUT_QUEUE: raw_views_2
+      AGGREGATOR_ID: 2
+      BATCH_SIZE: 1000
+      BATCH_TIMEOUT_MS: 60000
+      INCREMENTS_SERVICE_URL: http://increments-service:3001
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+      increments-service:
+        condition: service_started
+    restart: unless-stopped
+    networks:
+      - analytics-network
+    command: ["npm", "run", "aggregator:prod"]
+
+  aggregator-3:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: analytics-project-aggregator-3
+    environment:
+      RABBITMQ_URL: amqp://admin:admin@rabbitmq:5672
+      INPUT_QUEUE: raw_views_3
+      AGGREGATOR_ID: 3
+      BATCH_SIZE: 1000
+      BATCH_TIMEOUT_MS: 60000
+      INCREMENTS_SERVICE_URL: http://increments-service:3001
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+      increments-service:
+        condition: service_started
+    restart: unless-stopped
+    networks:
+      - analytics-network
+    command: ["npm", "run", "aggregator:prod"]
+
+  aggregator-4:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: analytics-project-aggregator-4
+    environment:
+      RABBITMQ_URL: amqp://admin:admin@rabbitmq:5672
+      INPUT_QUEUE: raw_views_4
+      AGGREGATOR_ID: 4
+      BATCH_SIZE: 1000
+      BATCH_TIMEOUT_MS: 60000
+      INCREMENTS_SERVICE_URL: http://increments-service:3001
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+      increments-service:
+        condition: service_started
+    restart: unless-stopped
+    networks:
+      - analytics-network
+    command: ["npm", "run", "aggregator:prod"]
+
+  aggregator-5:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: analytics-project-aggregator-5
+    environment:
+      RABBITMQ_URL: amqp://admin:admin@rabbitmq:5672
+      INPUT_QUEUE: raw_views_5
+      AGGREGATOR_ID: 5
+      BATCH_SIZE: 1000
+      BATCH_TIMEOUT_MS: 60000
+      INCREMENTS_SERVICE_URL: http://increments-service:3001
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+      increments-service:
+        condition: service_started
+    restart: unless-stopped
+    networks:
+      - analytics-network
+    command: ["npm", "run", "aggregator:prod"]
+
+  aggregator-6:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: analytics-project-aggregator-6
+    environment:
+      RABBITMQ_URL: amqp://admin:admin@rabbitmq:5672
+      INPUT_QUEUE: raw_views_6
+      AGGREGATOR_ID: 6
+      BATCH_SIZE: 1000
+      BATCH_TIMEOUT_MS: 60000
+      INCREMENTS_SERVICE_URL: http://increments-service:3001
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+      increments-service:
+        condition: service_started
+    restart: unless-stopped
+    networks:
+      - analytics-network
+    command: ["npm", "run", "aggregator:prod"]
+
+  aggregator-7:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: analytics-project-aggregator-7
+    environment:
+      RABBITMQ_URL: amqp://admin:admin@rabbitmq:5672
+      INPUT_QUEUE: raw_views_7
+      AGGREGATOR_ID: 7
+      BATCH_SIZE: 1000
+      BATCH_TIMEOUT_MS: 60000
+      INCREMENTS_SERVICE_URL: http://increments-service:3001
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+      increments-service:
+        condition: service_started
+    restart: unless-stopped
+    networks:
+      - analytics-network
+    command: ["npm", "run", "aggregator:prod"]
+
+  aggregator-8:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: analytics-project-aggregator-8
+    environment:
+      RABBITMQ_URL: amqp://admin:admin@rabbitmq:5672
+      INPUT_QUEUE: raw_views_8
+      AGGREGATOR_ID: 8
+      BATCH_SIZE: 1000
+      BATCH_TIMEOUT_MS: 60000
+      INCREMENTS_SERVICE_URL: http://increments-service:3001
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+      increments-service:
+        condition: service_started
+    restart: unless-stopped
+    networks:
+      - analytics-network
+    command: ["npm", "run", "aggregator:prod"]
+
+  aggregator-9:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: analytics-project-aggregator-9
+    environment:
+      RABBITMQ_URL: amqp://admin:admin@rabbitmq:5672
+      INPUT_QUEUE: raw_views_9
+      AGGREGATOR_ID: 9
+      BATCH_SIZE: 1000
+      BATCH_TIMEOUT_MS: 60000
+      INCREMENTS_SERVICE_URL: http://increments-service:3001
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+      increments-service:
+        condition: service_started
+    restart: unless-stopped
+    networks:
+      - analytics-network
+    command: ["npm", "run", "aggregator:prod"]
+
+  # Increments Service
+  increments-service:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: analytics-project-increments-service
+    environment:
+      PORT: 3001
+      CONNECTION_STRING: postgresql://postgres:postgres@postgres:5432/analytics
+    ports:
+      - "3001:3001"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: unless-stopped
+    networks:
+      - analytics-network
+    command: ["npm", "run", "increments-service:prod"]
+
+  # Analytics Service
+  analytics-service:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: analytics-project-analytics-service
+    environment:
+      PORT: 3002
+      CONNECTION_STRING: postgresql://postgres:postgres@postgres:5432/analytics
+    ports:
+      - "3002:3002"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: unless-stopped
+    networks:
+      - analytics-network
+    command: ["npm", "run", "analytics-service:prod"]
+
+  # The Wolf Service (Materialized View Manager)
+  the-wolf:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: analytics-project-the-wolf
+    environment:
+      CONNECTION_STRING: postgresql://postgres:postgres@postgres:5432/analytics
+      REFRESH_INTERVAL_MS: 300000 # 5 minutes
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: unless-stopped
+    networks:
+      - analytics-network
+    command: ["npm", "run", "the-wolf:prod"]
+
+volumes:
+  postgres_data:
+    driver: local
+  rabbitmq_data:
+    driver: local
+
+networks:
+  analytics-network:
+    driver: bridge
