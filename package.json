@@ -22,6 +22,8 @@
     "cache-proxy:prod": "node --env-file=.env distributed-system-project/cache-proxy/index.ts",
     "aggregator:dev": "tsx --env-file=.env --watch analytics-project/aggregator-service/index.ts",
     "aggregator:prod": "tsx --env-file=.env analytics-project/aggregator-service/index.ts",
+    "api-gateway:dev": "tsx --env-file=.env --watch analytics-project/api-gateway/index.ts",
+    "api-gateway:prod": "tsx --env-file=.env analytics-project/api-gateway/index.ts",
     "malic:up": "./start-services.sh",
     "docs:dev": "vitepress dev docs",
     "docs:build": "vitepress build docs",
