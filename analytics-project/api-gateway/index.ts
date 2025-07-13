@@ -1,7 +1,8 @@
-import Fastify from "fastify";
+import Fastify, { type FastifyRequest } from "fastify";
 import { createLogger } from "../logger/index.ts";
 import { config } from "./config.ts";
 import { PartitionerService } from "./services/partitioner.service.ts";
+import { routes } from "./handlers/index.ts";
 
 export const logger = createLogger("api-gateway");
 
@@ -20,19 +21,13 @@ const start = async () => {
 
     await partitionerService.start();
 
+    await fastify.register(routes, { prefix: "/" });
+
     await fastify.listen({ port: config.PORT, host: "0.0.0.0" });
 
     logger.info(
       `API Gateway service started on port ${config.PORT}. Connected to RabbitMQ.`,
     );
-    for (let i = 0; i < 10; i++) {
-      partitionerService.publishWithKey(
-        "Hello, world!",
-        `test-partition-key-${i}`,
-      );
-    }
-
-    // Graceful shutdown
     process.on("SIGTERM", async () => {
       logger.info("Received SIGTERM, shutting down gracefully...");
       await partitionerService.stop();

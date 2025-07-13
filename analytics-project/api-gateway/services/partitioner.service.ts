@@ -5,7 +5,7 @@ import { config } from "../config.ts";
 import { logger } from "../index.ts";
 
 export class PartitionerService {
-  private readonly EXCHANGE_NAME = "analytics_fanout";
+  private readonly EXCHANGE_NAME = "analytics_exchange";
   private channel?: Channel;
 
   public async start(): Promise<void> {
@@ -14,7 +14,7 @@ export class PartitionerService {
     const connection = await amqp.connect(config.RABBITMQ_URL);
     this.channel = await connection.createChannel();
 
-    await this.channel.assertExchange(this.EXCHANGE_NAME, "fanout", {
+    await this.channel.assertExchange(this.EXCHANGE_NAME, "direct", {
       durable: true,
     });
 
@@ -37,7 +37,7 @@ export class PartitionerService {
   }
 
   public async publishWithKey(
-    content: string,
+    content: object,
     partitionKey: string,
   ): Promise<void> {
     const channel = this.channel;
@@ -50,13 +50,18 @@ export class PartitionerService {
       const partition = parseInt(hash, 16) % config.NUM_PARTITIONS;
       const routingKey = `${config.OUTPUT_QUEUE_PREFIX}${partition}`;
 
-      channel.publish(this.EXCHANGE_NAME, routingKey, Buffer.from(content), {
-        persistent: true,
-        headers: {
-          partitionKey: partitionKey,
-          targetPartition: partition,
+      channel.publish(
+        this.EXCHANGE_NAME,
+        routingKey,
+        Buffer.from(JSON.stringify(content)),
+        {
+          persistent: true,
+          headers: {
+            partitionKey: partitionKey,
+            targetPartition: partition,
+          },
         },
-      });
+      );
 
       logger.info(
         `Published message to fanout exchange: ${this.EXCHANGE_NAME} with routing key: ${routingKey} using partition key: ${partitionKey}`,
