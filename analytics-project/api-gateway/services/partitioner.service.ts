@@ -1,89 +1,69 @@
 import amqp from "amqplib";
+import type { Channel } from "amqplib";
 import { createHash } from "node:crypto";
 import { config } from "../config.ts";
 import { logger } from "../index.ts";
 
-async function getRabbitConnection() {
-  const connection = await amqp.connect(config.RABBITMQ_URL);
-  return {
-    connection,
-    [Symbol.asyncDispose]: async () => {
-      await connection.close();
-    },
-  };
-}
-
 export class PartitionerService {
-  private channel?: amqp.Channel;
-  private isRunning = false;
+  private readonly EXCHANGE_NAME = "analytics_fanout";
+  private channel?: Channel;
 
-  async start(): Promise<void> {
-    try {
-      logger.info(`Connecting to RabbitMQ at ${config.RABBITMQ_URL}`);
-      await using connObj = await getRabbitConnection();
-      this.channel = await connObj.connection.createChannel();
+  public async start(): Promise<void> {
+    logger.info(`Connecting to RabbitMQ at ${config.RABBITMQ_URL}`);
 
-      // Ensure input queue exists
-      await this.channel.assertQueue(config.INPUT_QUEUE, { durable: true });
-      // Ensure output queues exist
-      for (let i = 0; i < config.NUM_PARTITIONS; i++) {
-        await this.channel.assertQueue(`${config.OUTPUT_QUEUE_PREFIX}${i}`, {
-          durable: true,
-        });
-      }
+    const connection = await amqp.connect(config.RABBITMQ_URL);
+    this.channel = await connection.createChannel();
 
-      logger.info(
-        `Connected to RabbitMQ and listening to queue: ${config.INPUT_QUEUE}`,
-      );
-      this.isRunning = true;
-      await this.startConsuming();
-    } catch (error) {
-      logger.error("Failed to start partitioner service", error);
-      throw error;
+    await this.channel.assertExchange(this.EXCHANGE_NAME, "fanout", {
+      durable: true,
+    });
+
+    for (let i = 0; i < config.NUM_PARTITIONS; i++) {
+      const queueName = `${config.OUTPUT_QUEUE_PREFIX}${i}`;
+      await this.channel.assertQueue(queueName, { durable: true });
+      await this.channel.bindQueue(queueName, this.EXCHANGE_NAME, queueName);
     }
+
+    logger.info(
+      `PartitionerService connected to RabbitMQ. Exchange: ${this.EXCHANGE_NAME}, Partitions: ${config.NUM_PARTITIONS}`,
+    );
   }
 
-  async stop(): Promise<void> {
-    this.isRunning = false;
+  public async stop(): Promise<void> {
     if (this.channel) {
       await this.channel.close();
     }
-    logger.info("Partitioner service stopped");
+    logger.info("PartitionerService stopped gracefully");
   }
 
-  private async startConsuming(): Promise<void> {
-    if (!this.channel) throw new Error("Channel not initialized");
-    await this.channel.consume(
-      config.INPUT_QUEUE,
-      async (message) => {
-        if (!message) return;
-        try {
-          await this.handleMessage(message);
-        } catch (error) {
-          logger.error("Error handling message", error);
-          this.channel?.nack(message, false, true);
-        }
-      },
-      { noAck: false },
-    );
-    logger.info("Started consuming messages from input queue");
-  }
+  public async publishWithKey(
+    content: string,
+    partitionKey: string,
+  ): Promise<void> {
+    const channel = this.channel;
+    if (!channel) {
+      throw new Error("PartitionerService not started. Call start() first.");
+    }
 
-  public async handleMessage(message: amqp.Message): Promise<void> {
     try {
-      const content = message.content.toString();
-      // Use a hash of the content to determine the partition
-      const hash = createHash("md5").update(content).digest("hex");
+      const hash = createHash("md5").update(partitionKey).digest("hex");
       const partition = parseInt(hash, 16) % config.NUM_PARTITIONS;
-      const outputQueue = `${config.OUTPUT_QUEUE_PREFIX}${partition}`;
-      await this.channel!.sendToQueue(outputQueue, Buffer.from(content), {
+      const routingKey = `${config.OUTPUT_QUEUE_PREFIX}${partition}`;
+
+      channel.publish(this.EXCHANGE_NAME, routingKey, Buffer.from(content), {
         persistent: true,
+        headers: {
+          partitionKey: partitionKey,
+          targetPartition: partition,
+        },
       });
-      logger.info(`Partitioned message to queue: ${outputQueue}`);
-      this.channel!.ack(message);
+
+      logger.info(
+        `Published message to fanout exchange: ${this.EXCHANGE_NAME} with routing key: ${routingKey} using partition key: ${partitionKey}`,
+      );
     } catch (error) {
-      logger.error("Error partitioning message", error);
-      this.channel!.ack(message); // Acknowledge to avoid infinite loop
+      logger.error("Error publishing message with key", error);
+      throw error;
     }
   }
 }

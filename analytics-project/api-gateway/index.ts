@@ -15,13 +15,37 @@ declare module "fastify" {
 
 const start = async () => {
   try {
-    fastify.decorate("partitionerService", new PartitionerService());
+    const partitionerService = new PartitionerService();
+    fastify.decorate("partitionerService", partitionerService);
+
+    await partitionerService.start();
 
     await fastify.listen({ port: config.PORT, host: "0.0.0.0" });
 
     logger.info(
-      `API Gateway service started. Listening to queue: ${config.INPUT_QUEUE}`,
+      `API Gateway service started on port ${config.PORT}. Connected to RabbitMQ.`,
     );
+    for (let i = 0; i < 10; i++) {
+      partitionerService.publishWithKey(
+        "Hello, world!",
+        `test-partition-key-${i}`,
+      );
+    }
+
+    // Graceful shutdown
+    process.on("SIGTERM", async () => {
+      logger.info("Received SIGTERM, shutting down gracefully...");
+      await partitionerService.stop();
+      await fastify.close();
+      process.exit(0);
+    });
+
+    process.on("SIGINT", async () => {
+      logger.info("Received SIGINT, shutting down gracefully...");
+      await partitionerService.stop();
+      await fastify.close();
+      process.exit(0);
+    });
   } catch (err) {
     logger.error(err);
     process.exit(1);
