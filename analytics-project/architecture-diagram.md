@@ -5,17 +5,14 @@ graph TB
     %% External traffic
     Client[Client/Browser] --> API[API Gateway]
 
-    %% Main queue
-    API --> PVQ[page_views Queue<br/>RabbitMQ]
+    %% Write flow - for saving data
+    API -->|Write/Save Data| PV0[page_views_0<br/>RabbitMQ]
+    API -->|Write/Save Data| PV1[page_views_1<br/>RabbitMQ]
+    API -->|Write/Save Data| PV2[page_views_2<br/>RabbitMQ]
+    API -->|Write/Save Data| PVN[page_views_n-1<br/>RabbitMQ]
 
-    %% Partitioner service
-    PVQ --> Partitioner[Partitioner Service]
-
-    %% Partitioned queues
-    Partitioner --> PV0[page_views_0<br/>RabbitMQ]
-    Partitioner --> PV1[page_views_1<br/>RabbitMQ]
-    Partitioner --> PV2[page_views_2<br/>RabbitMQ]
-    Partitioner --> PVN[page_views_n-1<br/>RabbitMQ]
+    %% Read flow - for querying data
+    API -->|Read/Query Data| Analytics[Analytics Service]
 
     %% Aggregator services
     PV0 --> Agg0[Aggregator_0<br/>Service]
@@ -36,20 +33,25 @@ graph TB
     classDef client fill:#fff3e0,stroke:#e65100,stroke-width:2px
 
     class PVQ,PV0,PV1,PV2,PVN queue
-    class Partitioner,Agg0,Agg1,Agg2,AggN service
+    class Agg0,Agg1,Agg2,AggN,Analytics,IncSvc service
     class API gateway
     class Client client
-    class IncSvc service
 ```
 
 ## Architecture Flow
 
-1. **API Gateway**: Receives page view requests from clients and writes them to the main `page_views` queue
-2. **Partitioner Service**: Reads from `page_views` queue and distributes messages across N partitioned queues (`page_views_0` to `page_views_n-1`)
-3. **Aggregator Services**: Each aggregator service (0 to n-1) reads from its respective partitioned queue and:
+### Write Flow (Data Ingestion)
+
+1. **API Gateway**: Receives page view requests from clients and distributes them across N partitioned queues (`page_views_0` to `page_views_n-1`)
+2. **Aggregator Services**: Each aggregator service (0 to n-1) reads from its respective partitioned queue and:
    - Processes up to 1000 messages OR waits 1 minute (whichever comes first)
    - Aggregates messages by pages
    - Writes aggregated data to the increments service
+
+### Read Flow (Data Querying)
+
+1. **API Gateway**: Receives query requests from clients and forwards them to the Analytics Service
+2. **Analytics Service**: Processes queries and returns analytics data to clients
 
 ## Components
 
