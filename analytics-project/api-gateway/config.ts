@@ -1,4 +1,3 @@
-// partitioner-config.ts
 export const config = {
   RABBITMQ_URL: process.env.RABBITMQ_URL || "amqp://admin:admin@localhost:5672",
   INPUT_QUEUE: process.env.INPUT_QUEUE || "raw_views",

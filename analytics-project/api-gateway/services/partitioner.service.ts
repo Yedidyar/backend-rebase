@@ -1,9 +1,7 @@
 import amqp from "amqplib";
 import { createHash } from "node:crypto";
-import { config } from "../partitioner-config.ts";
-import { createLogger } from "../../logger/index.ts";
-
-const logger = createLogger("partitioner-service");
+import { config } from "../config.ts";
+import { logger } from "../index.ts";
 
 async function getRabbitConnection() {
   const connection = await amqp.connect(config.RABBITMQ_URL);

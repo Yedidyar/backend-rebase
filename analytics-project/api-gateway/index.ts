@@ -1,18 +1,18 @@
 import { createLogger } from "../logger/index.ts";
-import { config } from "./partitioner-config.ts";
+import { config } from "./config.ts";
 import { PartitionerService } from "./services/partitioner.service.ts";
 
-export const logger = createLogger("partitioner-service");
+export const logger = createLogger("api-gateway");
 
 const start = async () => {
   try {
     const partitionerService = new PartitionerService();
     await partitionerService.start();
     logger.info(
-      `Partitioner service started. Listening to queue: ${config.INPUT_QUEUE}`,
+      `API Gateway service started. Listening to queue: ${config.INPUT_QUEUE}`,
     );
     logger.info(
-      `Partitioning to ${config.NUM_PARTITIONS} queues with prefix: ${config.OUTPUT_QUEUE_PREFIX}`,
+      `Forwarding to ${config.NUM_PARTITIONS} queues with prefix: ${config.OUTPUT_QUEUE_PREFIX}`,
     );
 
     process.on("SIGTERM", async () => {
